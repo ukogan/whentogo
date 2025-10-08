@@ -135,22 +135,26 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
   // Compute optimal total time (L*) at quantile α*
   const optimalTotalTimeMinutes = computeQuantile(samples, alpha);
 
-  // Compute range: conservative (90th percentile) to efficient (alpha - 10%)
-  const conservativePercentile = Math.min(0.95, alpha + 0.1);
-  const efficientPercentile = Math.max(0.5, alpha - 0.1);
+  // Compute range: show trade-off around optimal point
+  // Earlier time = more conservative (higher percentile = more time budgeted)
+  // Later time = more efficient (lower percentile = less time budgeted)
+  // SAFETY: Never recommend less than 80% confidence for the "efficient" option
+  const conservativePercentile = Math.min(0.95, alpha + 0.15);
+  const efficientPercentile = Math.max(0.80, alpha - 0.15);
 
   const earliestTotalTime = computeQuantile(samples, conservativePercentile);
   const latestTotalTime = computeQuantile(samples, efficientPercentile);
 
   // Convert total times to leave times (flight time - total time)
+  // Note: Higher total time needed = Earlier leave time
   const flightTime = tripContext.flightTime.getTime();
   const optimalLeaveTime = new Date(flightTime - optimalTotalTimeMinutes * 60 * 1000);
-  const earliest = new Date(flightTime - earliestTotalTime * 60 * 1000);
-  const latest = new Date(flightTime - latestTotalTime * 60 * 1000);
+  const earliest = new Date(flightTime - earliestTotalTime * 60 * 1000);  // More time budgeted = earlier departure
+  const latest = new Date(flightTime - latestTotalTime * 60 * 1000);     // Less time budgeted = later departure
 
   // Calculate probability of making flight at optimal time
-  const samplesUnderOptimal = samples.filter(s => s <= optimalTotalTimeMinutes).length;
-  const probMakeFlight = samplesUnderOptimal / samples.length;
+  // This is just alpha by definition (we chose the alpha quantile)
+  const probMakeFlight = alpha;
 
   // Expected wait time = total time - time actually needed (approximate)
   const medianActualTime = computeQuantile(samples, 0.5);
