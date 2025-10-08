@@ -102,16 +102,19 @@ export default function TradeoffVisualization({
   };
 
   // Calculate adjusted confidence based on slider position
-  // Rough approximation: ±1 minute = ±0.8% confidence change
+  // IMPORTANT: Negative adjustmentMinutes = leave earlier (more time) = HIGHER confidence
+  //            Positive adjustmentMinutes = leave later (less time) = LOWER confidence
+  // Rough approximation: ±1 minute = ∓0.8% confidence change (note the inverse!)
   const adjustedConfidence = Math.max(
     0.50,
-    Math.min(0.995, tradeoffMetrics.probMakeFlight + (adjustmentMinutes * 0.008))
+    Math.min(0.995, tradeoffMetrics.probMakeFlight - (adjustmentMinutes * 0.008))
   );
 
   const baseLabel = getConfidenceLabel(tradeoffMetrics.probMakeFlight);
   const adjustedLabel = getConfidenceLabel(adjustedConfidence);
 
   // Format adjusted time
+  // Negative adjustment = leave earlier (subtract more time from flight)
   const adjustedLeaveTime = new Date(optimalLeaveTime.getTime() - adjustmentMinutes * 60 * 1000);
 
   return (
