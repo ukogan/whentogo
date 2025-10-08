@@ -86,7 +86,8 @@ export default function TradeoffVisualization({
 
   // Calculate visual metrics
   const safetyScore = Math.round(tradeoffMetrics.probMakeFlight * 100);
-  const waitMinutes = Math.round(tradeoffMetrics.expectedWaitMinutes);
+  const waitMinutes = Math.round(tradeoffMetrics.waitBeforeDoorCloses);
+  const boardingMinutes = Math.abs(Math.round(tradeoffMetrics.timeRelativeToBoardingStart));
 
   // Generate airplane icons for safety visualization
   const numPlanes = 10;
@@ -106,9 +107,9 @@ export default function TradeoffVisualization({
   // IMPORTANT: Negative adjustmentMinutes = leave earlier (more time) = HIGHER confidence
   //            Positive adjustmentMinutes = leave later (less time) = LOWER confidence
 
-  // Adjusted total time = time we're budgeting if we leave at adjusted time
-  // Negative adjustment = leave earlier = MORE time budget (subtract from original)
-  // Positive adjustment = leave later = LESS time budget (subtract from original)
+  // Adjusted time budget = time available if we leave at adjusted time
+  // If we leave later (+adjustment), we have LESS time budget (subtract)
+  // If we leave earlier (-adjustment), we have MORE time budget (subtract negative = add)
   const adjustedTotalTimeMinutes = (debugInfo?.totalTimeMinutes || 0) - adjustmentMinutes;
 
   // Calculate exact probability: what % of samples are ≤ our adjusted budget?
@@ -122,7 +123,7 @@ export default function TradeoffVisualization({
   // Format adjusted time
   // Negative adjustment = leave earlier (move leave time back in time = SUBTRACT)
   // Positive adjustment = leave later (move leave time forward in time = ADD)
-  const adjustedLeaveTime = new Date(optimalLeaveTime.getTime() - adjustmentMinutes * 60 * 1000);
+  const adjustedLeaveTime = new Date(optimalLeaveTime.getTime() + adjustmentMinutes * 60 * 1000);
 
   // Create leave time vs probability curve
   const createProbabilityCurve = () => {
@@ -251,7 +252,7 @@ export default function TradeoffVisualization({
           <p className="text-xs text-gray-500 mt-2">Chance you&apos;ll make your flight</p>
         </motion.div>
 
-        {/* Wait Time */}
+        {/* Wait Time Before Door Closes */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -260,7 +261,7 @@ export default function TradeoffVisualization({
         >
           <div className="flex items-center gap-2 mb-3">
             <Clock className="h-5 w-5 text-blue-500" />
-            <h3 className="font-semibold text-gray-900">Wait Time</h3>
+            <h3 className="font-semibold text-gray-900">Wait Time Before Door Closes</h3>
           </div>
 
           <div className="text-3xl font-bold text-blue-600 mb-3">~{waitMinutes} min</div>
@@ -285,7 +286,18 @@ export default function TradeoffVisualization({
             })}
           </div>
 
-          <p className="text-xs text-gray-500 mt-2">Expected time at the gate</p>
+          {/* Boarding Status */}
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            {tradeoffMetrics.arriveBeforeBoardingStarts ? (
+              <p className="text-xs text-green-600 font-medium">
+                ✓ Arrive {boardingMinutes} min before boarding starts
+              </p>
+            ) : (
+              <p className="text-xs text-orange-600 font-medium">
+                ⚠ Arrive {boardingMinutes} min after boarding starts
+              </p>
+            )}
+          </div>
         </motion.div>
       </div>
 
@@ -293,7 +305,7 @@ export default function TradeoffVisualization({
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
         <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-blue-600" />
-          Explore Trade-offs
+          Adjust Departure Time
         </h3>
 
         {/* Slider */}
@@ -353,7 +365,7 @@ export default function TradeoffVisualization({
                     Confidence: <span className="font-semibold">{baseLabel}</span>
                     {' → '}
                     <span className={`font-semibold ${
-                      adjustmentMinutes < 0 ? 'text-green-700' : 'text-orange-700'
+                      adjustedConfidence > tradeoffMetrics.probMakeFlight ? 'text-green-700' : 'text-orange-700'
                     }`}>
                       {adjustedLabel}
                     </span>
@@ -370,6 +382,84 @@ export default function TradeoffVisualization({
             </div>
           )}
         </div>
+
+        {/* Risk Analysis Chart - moved from Advanced Mode */}
+        {probabilityCurve.length > 0 && (
+          <div className="mt-4 bg-white rounded-xl p-4 shadow-sm">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              Risk Analysis: When You Leave vs Probability of Missing Flight
+            </h4>
+
+            <div className="relative h-48">
+              {/* Y-axis labels */}
+              <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
+                <span>100%</span>
+                <span>50%</span>
+                <span>0%</span>
+              </div>
+
+              {/* Chart area */}
+              <div className="ml-10 h-full flex items-end gap-px">
+                {probabilityCurve.map((point, i) => {
+                  const heightPx = (point.probMissing / 100) * 180; // Max 180px for 100%
+
+                  // Check if this is near the adjusted leave time
+                  const isNearAdjusted = Math.abs(point.leaveTime.getTime() - adjustedLeaveTime.getTime()) < 5 * 60 * 1000;
+
+                  // Color based on risk level
+                  let barColor = 'bg-green-500'; // < 5% risk
+                  if (point.probMissing > 20) barColor = 'bg-red-500';
+                  else if (point.probMissing > 10) barColor = 'bg-orange-500';
+                  else if (point.probMissing > 5) barColor = 'bg-yellow-500';
+
+                  return (
+                    <div
+                      key={i}
+                      className="flex-1 flex flex-col justify-end"
+                      title={`Leave ${formatTime(point.leaveTime)}: ${point.probMissing.toFixed(1)}% risk`}
+                    >
+                      <div
+                        className={`w-full rounded-t transition-colors ${
+                          isNearAdjusted ? 'ring-2 ring-blue-500' : ''
+                        } ${barColor}`}
+                        style={{ height: `${heightPx}px` }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* X-axis labels (show every 4th) */}
+              <div className="ml-10 mt-1 flex justify-between text-xs text-gray-500">
+                {probabilityCurve
+                  .filter((_, i) => i % 4 === 0)
+                  .map((point, i) => (
+                    <span key={i}>{formatTime(point.leaveTime)}</span>
+                  ))}
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="mt-3 flex items-center justify-center gap-3 text-xs text-gray-600">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-green-500" />
+                <span>&lt;5% risk</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-yellow-500" />
+                <span>5-10%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-orange-500" />
+                <span>10-20%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-red-500" />
+                <span>&gt;20% risk</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Advanced Mode Toggle */}
@@ -429,15 +519,15 @@ export default function TradeoffVisualization({
               ) : (
                 <div className="relative h-32">
                   {/* Dual axis chart */}
-                  <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-red-600 pr-2 font-medium">
-                    <span>High</span>
-                    <span className="text-gray-400">Risk</span>
-                    <span>Low</span>
-                  </div>
-                  <div className="absolute right-0 top-0 bottom-0 flex flex-col justify-between text-xs text-blue-600 pl-2 font-medium">
+                  <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-blue-600 pr-2 font-medium">
                     <span>Long</span>
                     <span className="text-gray-400">Wait</span>
                     <span>Short</span>
+                  </div>
+                  <div className="absolute right-0 top-0 bottom-0 flex flex-col justify-between text-xs text-red-600 pl-2 font-medium">
+                    <span>High</span>
+                    <span className="text-gray-400">Risk</span>
+                    <span>Low</span>
                   </div>
 
                   {/* Chart area */}
@@ -475,93 +565,9 @@ export default function TradeoffVisualization({
               )}
 
               <p className="mt-3 text-xs text-gray-600 italic">
-                Blue (top) = time waiting at gate. Red (bottom) = risk of missing flight.
+                Blue (left axis) = time waiting at gate. Red (right axis) = risk of missing flight.
                 Your optimal time balances these based on your preferences.
               </p>
-            </div>
-
-            {/* Probability Curve: Leave Time vs Risk */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">
-                Risk Analysis: When You Leave vs Probability of Missing Flight
-              </h4>
-
-              {probabilityCurve.length === 0 ? (
-                <div className="h-48 flex items-center justify-center text-gray-500 text-sm">
-                  No probability data available. Samples: {samplesArray.length}
-                </div>
-              ) : (
-                <div className="relative h-48">
-                  {/* Y-axis labels */}
-                  <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
-                    <span>100%</span>
-                    <span>50%</span>
-                    <span>0%</span>
-                  </div>
-
-                  {/* Chart area */}
-                  <div className="ml-10 h-full flex items-end gap-px">
-                    {probabilityCurve.map((point, i) => {
-                    const heightPx = (point.probMissing / 100) * 180; // Max 180px for 100%
-
-                    // Check if this is near the adjusted leave time
-                    const isNearAdjusted = Math.abs(point.leaveTime.getTime() - adjustedLeaveTime.getTime()) < 5 * 60 * 1000;
-
-                    // Color based on risk level
-                    let barColor = 'bg-green-500'; // < 5% risk
-                    if (point.probMissing > 20) barColor = 'bg-red-500';
-                    else if (point.probMissing > 10) barColor = 'bg-orange-500';
-                    else if (point.probMissing > 5) barColor = 'bg-yellow-500';
-
-                    return (
-                      <div
-                        key={i}
-                        className="flex-1 flex flex-col justify-end"
-                        title={`Leave ${formatTime(point.leaveTime)}: ${point.probMissing.toFixed(1)}% risk`}
-                      >
-                        <div
-                          className={`w-full rounded-t transition-colors ${
-                            isNearAdjusted ? 'ring-2 ring-blue-500' : ''
-                          } ${barColor}`}
-                          style={{ height: `${heightPx}px` }}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-
-                  {/* X-axis labels (show every 4th) */}
-                  <div className="ml-10 mt-1 flex justify-between text-xs text-gray-500">
-                    {probabilityCurve
-                      .filter((_, i) => i % 4 === 0)
-                      .map((point, i) => (
-                        <span key={i}>{formatTime(point.leaveTime)}</span>
-                      ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Legend */}
-              {probabilityCurve.length > 0 && (
-                <div className="mt-3 flex items-center justify-center gap-3 text-xs text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded bg-green-500" />
-                    <span>&lt;5% risk</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded bg-yellow-500" />
-                    <span>5-10%</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded bg-orange-500" />
-                    <span>10-20%</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded bg-red-500" />
-                    <span>&gt;20% risk</span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Technical Details */}

@@ -33,12 +33,10 @@ const CONFIDENCE_MATRIX: Record<number, Record<number, number>> = {
 };
 
 /**
- * Boarding cutoff times (minutes before flight departure)
+ * Default door close time (minutes before flight departure)
+ * This is when the aircraft door shuts and you've missed the flight
  */
-const BOARDING_CUTOFF = {
-  domestic: 15,
-  international: 30,
-} as const;
+const DEFAULT_DOOR_CLOSE_MIN = 15;
 
 /**
  * Default walking times (minutes)
@@ -108,7 +106,7 @@ function runMonteCarloSimulation(inputs: SimulationInputs): number[] {
 
   const curbToSecurityTime = travelEstimate.curbToSecurityMin ?? DEFAULT_CURB_TO_SECURITY;
   const securityToGateTime = travelEstimate.securityToGateMin ?? DEFAULT_SECURITY_TO_GATE;
-  const boardingBuffer = BOARDING_CUTOFF[tripContext.flightType];
+  const doorCloseBuffer = tripContext.doorCloseMin;
 
   // Generate samples
   const samples: number[] = [];
@@ -119,9 +117,9 @@ function runMonteCarloSimulation(inputs: SimulationInputs): number[] {
       securityLognormalParams.sigma
     );
 
-    // Total time: travel + parking + walk to security + security + walk to gate + boarding buffer
+    // Total time: travel + parking + walk to security + security + walk to gate + door close buffer
     const totalTime = travelSample + parkingTime + curbToSecurityTime +
-                     securitySample + securityToGateTime + boardingBuffer;
+                     securitySample + securityToGateTime + doorCloseBuffer;
     samples.push(totalTime);
   }
 
@@ -168,9 +166,21 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
   // This is the target confidence by definition (we chose that quantile)
   const probMakeFlight = targetConfidence;
 
-  // Expected wait time = total time - time actually needed (approximate)
+  // Wait time before door closes = total time - time actually needed (approximate)
   const medianActualTime = computeQuantile(samples, 0.5);
-  const expectedWaitMinutes = Math.max(0, optimalTotalTimeMinutes - medianActualTime);
+  const waitBeforeDoorCloses = Math.max(0, optimalTotalTimeMinutes - medianActualTime);
+
+  // Calculate time relative to boarding start
+  // boardingStartMin is how early boarding starts before departure
+  // doorCloseMin is how early door closes before departure
+  // The difference is the boarding window duration
+  const boardingWindowDuration = tripContext.boardingStartMin - tripContext.doorCloseMin;
+
+  // Time from optimal arrival to boarding start
+  // If positive: arrive before boarding starts (early)
+  // If negative: arrive after boarding starts (rushing)
+  const timeRelativeToBoardingStart = waitBeforeDoorCloses - boardingWindowDuration;
+  const arriveBeforeBoardingStarts = timeRelativeToBoardingStart > 0;
 
   // Calculate component breakdown for debug
   const parkingTime = travelEstimate.mode === 'driving'
@@ -192,7 +202,7 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
     curbToSecurity: curbToSecurityTime,
     security: securityParams.mean,
     securityToGate: securityToGateTime,
-    boardingBuffer: BOARDING_CUTOFF[tripContext.flightType],
+    doorCloseBuffer: tripContext.doorCloseMin,
   };
 
   return {
@@ -203,7 +213,9 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
     },
     tradeoffMetrics: {
       probMakeFlight,
-      expectedWaitMinutes,
+      waitBeforeDoorCloses,
+      arriveBeforeBoardingStarts,
+      timeRelativeToBoardingStart,
     },
     samples,
     flightTime: tripContext.flightTime,

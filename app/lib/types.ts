@@ -28,6 +28,8 @@ export interface TripContext {
   hasCheckedBag: boolean;
   hasPreCheck: boolean;
   hasClear: boolean;
+  boardingStartMin: number;  // Minutes before departure when boarding starts (default 30)
+  doorCloseMin: number;      // Minutes before departure when door closes (default 15)
 }
 
 export interface TravelEstimate {
@@ -51,21 +53,23 @@ export interface Recommendation {
     latest: Date;
   };
   tradeoffMetrics: {
-    probMakeFlight: number;       // Probability of making flight at optimal time
-    expectedWaitMinutes: number;   // Expected wait time at gate
+    probMakeFlight: number;           // Probability of making flight at optimal time
+    waitBeforeDoorCloses: number;     // Expected wait time before door closes
+    arriveBeforeBoardingStarts: boolean;  // Whether you arrive before boarding starts
+    timeRelativeToBoardingStart: number;  // Minutes before (+) or after (-) boarding starts
   };
   samples: number[];              // Monte Carlo samples for interactive exploration
   flightTime: Date;               // Flight departure time
   debugInfo?: {
     alpha: number;                // Critical fractile ratio
-    totalTimeMinutes: number;     // Total time from leave to boarding
+    totalTimeMinutes: number;     // Total time from leave to door close
     components: {
       travel: number;
       parking: number;
       curbToSecurity: number;
       security: number;
       securityToGate: number;
-      boardingBuffer: number;
+      doorCloseBuffer: number;    // Changed from boardingBuffer
     };
   };
 }

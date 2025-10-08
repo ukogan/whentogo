@@ -147,6 +147,26 @@ export default function Home() {
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
           <p>v1.0 MVP — Probabilistic flight timing recommendations</p>
+          <p className="mt-2">
+            Inspired by{' '}
+            <a
+              href="https://gadallon.substack.com/p/when-should-i-arrive-at-the-airport"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700 underline"
+            >
+              Gad Allon&apos;s article
+            </a>
+            {' · '}
+            <a
+              href="https://github.com/ukogan/whentogo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-700 underline"
+            >
+              View code on GitHub
+            </a>
+          </p>
         </div>
       </div>
     </div>

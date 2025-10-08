@@ -36,6 +36,8 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
   const [hasCheckedBag, setHasCheckedBag] = useState(false);
   const [hasPreCheck, setHasPreCheck] = useState(false);
   const [hasClear, setHasClear] = useState(false);
+  const [boardingStartMin, setBoardingStartMin] = useState('30');
+  const [doorCloseMin, setDoorCloseMin] = useState('15');
 
   const canContinue = airport && flightDate && flightTime;
 
@@ -53,6 +55,8 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
       hasCheckedBag,
       hasPreCheck,
       hasClear,
+      boardingStartMin: parseInt(boardingStartMin, 10),
+      doorCloseMin: parseInt(doorCloseMin, 10),
     };
 
     onComplete(context);
@@ -134,6 +138,39 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
           >
             International
           </button>
+        </div>
+      </div>
+
+      {/* Boarding Times */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Boarding Starts (min before departure)
+          </label>
+          <input
+            type="number"
+            value={boardingStartMin}
+            onChange={(e) => setBoardingStartMin(e.target.value)}
+            min="10"
+            max="90"
+            className="w-full h-12 px-4 text-base bg-white border border-gray-200 rounded-xl
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Door Closes (min before departure)
+          </label>
+          <input
+            type="number"
+            value={doorCloseMin}
+            onChange={(e) => setDoorCloseMin(e.target.value)}
+            min="5"
+            max="30"
+            className="w-full h-12 px-4 text-base bg-white border border-gray-200 rounded-xl
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
         </div>
       </div>
 
