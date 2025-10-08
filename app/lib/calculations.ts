@@ -41,9 +41,11 @@ const BOARDING_CUTOFF = {
 } as const;
 
 /**
- * Default parking-to-terminal time (minutes)
+ * Default walking times (minutes)
  */
 const DEFAULT_PARKING_TIME = 15;
+const DEFAULT_CURB_TO_SECURITY = 5;
+const DEFAULT_SECURITY_TO_GATE = 10;
 
 /**
  * Number of Monte Carlo samples
@@ -99,11 +101,13 @@ function runMonteCarloSimulation(inputs: SimulationInputs): number[] {
   const securityMax = securityParams.mean + 1.5 * securityParams.std;
   const securityLognormalParams = fitLognormalFromMinMax(securityMin, securityMax);
 
-  // Fixed components
+  // Fixed walking time components
   const parkingTime = travelEstimate.mode === 'driving'
     ? (travelEstimate.parkingToTerminalMin ?? DEFAULT_PARKING_TIME)
     : 0;
 
+  const curbToSecurityTime = travelEstimate.curbToSecurityMin ?? DEFAULT_CURB_TO_SECURITY;
+  const securityToGateTime = travelEstimate.securityToGateMin ?? DEFAULT_SECURITY_TO_GATE;
   const boardingBuffer = BOARDING_CUTOFF[tripContext.flightType];
 
   // Generate samples
@@ -115,7 +119,9 @@ function runMonteCarloSimulation(inputs: SimulationInputs): number[] {
       securityLognormalParams.sigma
     );
 
-    const totalTime = travelSample + parkingTime + securitySample + boardingBuffer;
+    // Total time: travel + parking + walk to security + security + walk to gate + boarding buffer
+    const totalTime = travelSample + parkingTime + curbToSecurityTime +
+                     securitySample + securityToGateTime + boardingBuffer;
     samples.push(totalTime);
   }
 
@@ -146,8 +152,10 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
   const earlierPercentile = Math.min(0.98, targetConfidence + 0.05);  // Cap at 98%
   const laterPercentile = Math.max(targetConfidence - 0.10, 0.70);     // Floor at 70%
 
-  const earliestTotalTime = computeQuantile(samples, Math.max(earlierPercentile, laterPercentile));
-  const latestTotalTime = computeQuantile(samples, Math.min(earlierPercentile, laterPercentile));
+  // earlierPercentile (higher) gives MORE time budget = EARLIER leave time
+  // laterPercentile (lower) gives LESS time budget = LATER leave time
+  const earliestTotalTime = computeQuantile(samples, earlierPercentile);
+  const latestTotalTime = computeQuantile(samples, laterPercentile);
 
   // Convert total times to leave times (flight time - total time)
   // Note: Higher total time needed = Earlier leave time
@@ -169,6 +177,9 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
     ? (travelEstimate.parkingToTerminalMin ?? DEFAULT_PARKING_TIME)
     : 0;
 
+  const curbToSecurityTime = travelEstimate.curbToSecurityMin ?? DEFAULT_CURB_TO_SECURITY;
+  const securityToGateTime = travelEstimate.securityToGateMin ?? DEFAULT_SECURITY_TO_GATE;
+
   const securityParams = getSecurityPriors(
     tripContext.airport,
     tripContext.hasPreCheck,
@@ -178,7 +189,9 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
   const components = {
     travel: (travelEstimate.minMinutes + travelEstimate.maxMinutes) / 2,
     parking: parkingTime,
+    curbToSecurity: curbToSecurityTime,
     security: securityParams.mean,
+    securityToGate: securityToGateTime,
     boardingBuffer: BOARDING_CUTOFF[tripContext.flightType],
   };
 

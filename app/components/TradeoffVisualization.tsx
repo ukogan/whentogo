@@ -120,7 +120,8 @@ export default function TradeoffVisualization({
   const adjustedLabel = getConfidenceLabel(adjustedConfidence);
 
   // Format adjusted time
-  // Negative adjustment = leave earlier (subtract more time from flight)
+  // Negative adjustment = leave earlier (move leave time back in time = SUBTRACT)
+  // Positive adjustment = leave later (move leave time forward in time = ADD)
   const adjustedLeaveTime = new Date(optimalLeaveTime.getTime() - adjustmentMinutes * 60 * 1000);
 
   // Create histogram data for advanced mode
@@ -444,8 +445,14 @@ export default function TradeoffVisualization({
                     <div className="pl-4">Parking:</div>
                     <div className="font-mono">{debugInfo.components.parking} min</div>
 
+                    <div className="pl-4">Curb → Security:</div>
+                    <div className="font-mono">{debugInfo.components.curbToSecurity} min</div>
+
                     <div className="pl-4">Security:</div>
                     <div className="font-mono">{Math.round(debugInfo.components.security)} min</div>
+
+                    <div className="pl-4">Security → Gate:</div>
+                    <div className="font-mono">{debugInfo.components.securityToGate} min</div>
 
                     <div className="pl-4">Boarding buffer:</div>
                     <div className="font-mono">{debugInfo.components.boardingBuffer} min</div>

@@ -35,6 +35,8 @@ export interface TravelEstimate {
   minMinutes: number;
   maxMinutes: number;
   parkingToTerminalMin?: number;
+  curbToSecurityMin?: number;    // Walk time from curb/parking to security checkpoint
+  securityToGateMin?: number;     // Walk time from security to gate
 }
 
 export interface CostPreferences {
@@ -60,7 +62,9 @@ export interface Recommendation {
     components: {
       travel: number;
       parking: number;
+      curbToSecurity: number;
       security: number;
+      securityToGate: number;
       boardingBuffer: number;
     };
   };
