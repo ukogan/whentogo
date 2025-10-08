@@ -136,14 +136,14 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
   const optimalTotalTimeMinutes = computeQuantile(samples, alpha);
 
   // Compute range: show trade-off around optimal point
-  // Earlier time = more conservative (higher percentile = more time budgeted)
-  // Later time = more efficient (lower percentile = less time budgeted)
-  // SAFETY: Never recommend less than 80% confidence for the "efficient" option
-  const conservativePercentile = Math.min(0.95, alpha + 0.15);
-  const efficientPercentile = Math.max(0.80, alpha - 0.15);
+  // Higher percentile = more time budgeted = earlier departure (safer)
+  // Lower percentile = less time budgeted = later departure (efficient)
+  // SAFETY: Never recommend less than 80% confidence even for latest/efficient option
+  const earlierPercentile = Math.min(0.95, alpha + 0.15);  // Cap at 95%
+  const laterPercentile = Math.max(0.80, alpha - 0.15);     // Floor at 80%
 
-  const earliestTotalTime = computeQuantile(samples, conservativePercentile);
-  const latestTotalTime = computeQuantile(samples, efficientPercentile);
+  const earliestTotalTime = computeQuantile(samples, Math.max(earlierPercentile, laterPercentile));
+  const latestTotalTime = computeQuantile(samples, Math.min(earlierPercentile, laterPercentile));
 
   // Convert total times to leave times (flight time - total time)
   // Note: Higher total time needed = Earlier leave time
