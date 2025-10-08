@@ -126,7 +126,10 @@ export default function TradeoffVisualization({
 
   // Create histogram data for advanced mode
   const createHistogram = () => {
-    if (!samplesArray || samplesArray.length === 0) return [];
+    if (!samplesArray || samplesArray.length === 0) {
+      console.log('No samples available for histogram');
+      return [];
+    }
 
     const bucketSize = 5; // 5-minute buckets
     const buckets: Record<number, number> = {};
@@ -136,13 +139,22 @@ export default function TradeoffVisualization({
       buckets[bucket] = (buckets[bucket] || 0) + 1;
     });
 
-    return Object.entries(buckets)
+    const histogram = Object.entries(buckets)
       .map(([bucket, count]) => ({
         time: Number(bucket),
         count,
         percentage: (count / samplesArray.length) * 100,
       }))
       .sort((a, b) => a.time - b.time);
+
+    console.log('Histogram data:', {
+      totalSamples: samplesArray.length,
+      bucketCount: histogram.length,
+      sampleRange: { min: Math.min(...samplesArray), max: Math.max(...samplesArray) },
+      firstBuckets: histogram.slice(0, 3),
+    });
+
+    return histogram;
   };
 
   const histogramData = showAdvanced ? createHistogram() : [];
@@ -392,16 +404,15 @@ export default function TradeoffVisualization({
                     return (
                       <div
                         key={i}
-                        className="flex-1 flex flex-col items-center"
+                        className="flex-1 flex flex-col justify-end"
                         title={`${bar.time}-${bar.time + 5} min: ${bar.percentage.toFixed(1)}%`}
                       >
-                        <div className="w-full bg-gray-200 rounded-t relative" style={{ height: `${heightPercent}%` }}>
-                          <div
-                            className={`w-full h-full rounded-t transition-colors ${
-                              isAdjustedInBar ? 'bg-blue-500' : 'bg-indigo-400'
-                            }`}
-                          />
-                        </div>
+                        <div
+                          className={`w-full rounded-t transition-colors ${
+                            isAdjustedInBar ? 'bg-blue-500' : 'bg-indigo-400'
+                          }`}
+                          style={{ height: `${heightPercent}%` }}
+                        />
                       </div>
                     );
                   })}
