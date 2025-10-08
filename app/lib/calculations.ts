@@ -6,9 +6,6 @@
 import { sampleLognormal, fitLognormalFromMinMax, computeQuantile } from './distributions';
 import type {
   Airport,
-  TripContext,
-  TravelEstimate,
-  CostPreferences,
   Recommendation,
   SimulationInputs,
 } from './types';

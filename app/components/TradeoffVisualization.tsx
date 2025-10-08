@@ -18,7 +18,7 @@ export default function TradeoffVisualization({
   onStartOver,
   onBack,
 }: TradeoffVisualizationProps) {
-  const { optimalLeaveTime, recommendedRange, tradeoffMetrics, debugInfo, samples, flightTime } = recommendation;
+  const { optimalLeaveTime, recommendedRange, tradeoffMetrics, debugInfo, samples } = recommendation;
   const [adjustmentMinutes, setAdjustmentMinutes] = useState(0);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -217,7 +217,7 @@ export default function TradeoffVisualization({
             ))}
           </div>
 
-          <p className="text-xs text-gray-500 mt-2">Chance you'll make your flight</p>
+          <p className="text-xs text-gray-500 mt-2">Chance you&apos;ll make your flight</p>
         </motion.div>
 
         {/* Wait Time */}

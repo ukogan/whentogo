@@ -129,7 +129,7 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
           />
           <Luggage className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
           <span className="text-base text-gray-700 group-hover:text-gray-900 transition-colors">
-            I'm checking a bag
+            I&apos;m checking a bag
           </span>
         </label>
 
