@@ -111,6 +111,9 @@ export default function TradeoffVisualization({
               </div>
             </div>
             <div className="text-sm text-gray-500 mt-2">{formatDate(optimalLeaveTime)}</div>
+            <div className="text-sm font-medium text-gray-700 mt-3">
+              for {formatTime(simulationInputs.tripContext.flightTime)} flight
+            </div>
           </div>
 
           {/* Explanation */}
