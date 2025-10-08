@@ -10,9 +10,28 @@ interface TripContextFormProps {
 }
 
 export default function TripContextForm({ onComplete }: TripContextFormProps) {
-  const [airport, setAirport] = useState<Airport | null>(null);
-  const [flightDate, setFlightDate] = useState('');
-  const [flightTime, setFlightTime] = useState('');
+  // Default to SFO
+  const defaultAirport: Airport = {
+    code: 'SFO',
+    name: 'San Francisco International',
+    city: 'San Francisco',
+    size: 'large',
+    securityPriors: {
+      noPreCheck: { mean: 38, std: 14 },
+      withPreCheck: { mean: 12, std: 5 },
+      withClear: { mean: 8, std: 3 },
+    },
+  };
+
+  // Default to tomorrow at 12:30 PM
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const defaultDate = tomorrow.toISOString().split('T')[0];
+  const defaultTime = '12:30';
+
+  const [airport, setAirport] = useState<Airport | null>(defaultAirport);
+  const [flightDate, setFlightDate] = useState(defaultDate);
+  const [flightTime, setFlightTime] = useState(defaultTime);
   const [flightType, setFlightType] = useState<FlightType>('domestic');
   const [hasCheckedBag, setHasCheckedBag] = useState(false);
   const [hasPreCheck, setHasPreCheck] = useState(false);

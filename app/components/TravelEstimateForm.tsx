@@ -10,9 +10,9 @@ interface TravelEstimateFormProps {
 }
 
 export default function TravelEstimateForm({ onComplete, onBack }: TravelEstimateFormProps) {
-  const [mode, setMode] = useState<TravelMode>('driving');
-  const [minMinutes, setMinMinutes] = useState('');
-  const [maxMinutes, setMaxMinutes] = useState('');
+  const [mode, setMode] = useState<TravelMode>('rideshare');
+  const [minMinutes, setMinMinutes] = useState('25');
+  const [maxMinutes, setMaxMinutes] = useState('45');
   const [parkingToTerminalMin, setParkingToTerminalMin] = useState('15');
 
   const canContinue = minMinutes && maxMinutes && Number(minMinutes) < Number(maxMinutes);
