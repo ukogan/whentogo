@@ -124,40 +124,53 @@ export default function TradeoffVisualization({
   // Positive adjustment = leave later (move leave time forward in time = ADD)
   const adjustedLeaveTime = new Date(optimalLeaveTime.getTime() - adjustmentMinutes * 60 * 1000);
 
-  // Create histogram data for advanced mode
-  const createHistogram = () => {
-    if (!samplesArray || samplesArray.length === 0) {
-      console.log('No samples available for histogram');
+  // Create leave time vs probability curve
+  const createProbabilityCurve = () => {
+    if (!samplesArray || samplesArray.length === 0 || !debugInfo) {
+      console.log('No samples available for probability curve');
       return [];
     }
 
-    const bucketSize = 5; // 5-minute buckets
-    const buckets: Record<number, number> = {};
+    const flightTime = recommendation.flightTime.getTime();
+    const numPoints = 20;
+    const curve = [];
 
-    samplesArray.forEach(sample => {
-      const bucket = Math.floor(sample / bucketSize) * bucketSize;
-      buckets[bucket] = (buckets[bucket] || 0) + 1;
+    // Generate leave times from -60 min to +30 min relative to optimal
+    for (let i = 0; i < numPoints; i++) {
+      const offsetMin = -60 + (i * 90 / (numPoints - 1)); // -60 to +30 minutes
+      const leaveTimeMs = optimalLeaveTime.getTime() - (offsetMin * 60 * 1000);
+      const leaveTime = new Date(leaveTimeMs);
+
+      // Calculate time budget for this leave time
+      const timeBudgetMinutes = (flightTime - leaveTimeMs) / (60 * 1000);
+
+      // Calculate probability of missing flight = what % of samples exceed this budget?
+      const samplesMissing = samplesArray.filter(s => s > timeBudgetMinutes).length;
+      const probMissing = (samplesMissing / samplesArray.length) * 100;
+
+      curve.push({
+        leaveTime,
+        offsetMin,
+        probMissing,
+      });
+    }
+
+    console.log('Probability curve:', {
+      points: curve.length,
+      range: {
+        earliest: formatTime(curve[0].leaveTime),
+        latest: formatTime(curve[curve.length - 1].leaveTime)
+      },
+      probRange: {
+        min: Math.min(...curve.map(p => p.probMissing)).toFixed(1),
+        max: Math.max(...curve.map(p => p.probMissing)).toFixed(1)
+      },
     });
 
-    const histogram = Object.entries(buckets)
-      .map(([bucket, count]) => ({
-        time: Number(bucket),
-        count,
-        percentage: (count / samplesArray.length) * 100,
-      }))
-      .sort((a, b) => a.time - b.time);
-
-    console.log('Histogram data:', {
-      totalSamples: samplesArray.length,
-      bucketCount: histogram.length,
-      sampleRange: { min: Math.min(...samplesArray), max: Math.max(...samplesArray) },
-      firstBuckets: histogram.slice(0, 3),
-    });
-
-    return histogram;
+    return curve;
   };
 
-  const histogramData = showAdvanced ? createHistogram() : [];
+  const probabilityCurve = showAdvanced ? createProbabilityCurve() : [];
 
   return (
     <div className="space-y-8">
@@ -398,44 +411,49 @@ export default function TradeoffVisualization({
               )}
             </div>
 
-            {/* Total Time Histogram */}
+            {/* Probability Curve: Leave Time vs Risk */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h4 className="text-sm font-medium text-gray-700 mb-3">
-                Total Journey Time Distribution
+                Risk Analysis: When You Leave vs Probability of Missing Flight
               </h4>
 
-              {histogramData.length === 0 ? (
+              {probabilityCurve.length === 0 ? (
                 <div className="h-48 flex items-center justify-center text-gray-500 text-sm">
-                  No distribution data available. Samples: {samplesArray.length}
+                  No probability data available. Samples: {samplesArray.length}
                 </div>
               ) : (
                 <div className="relative h-48">
                   {/* Y-axis labels */}
                   <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
-                    <span>{Math.max(...histogramData.map(d => d.percentage)).toFixed(0)}%</span>
+                    <span>100%</span>
+                    <span>50%</span>
                     <span>0%</span>
                   </div>
 
                   {/* Chart area */}
-                  <div className="ml-8 h-full flex items-end gap-0.5">
-                    {histogramData.map((bar, i) => {
-                    const maxPercentage = Math.max(...histogramData.map(d => d.percentage));
-                    const heightPx = (bar.percentage / maxPercentage) * 180; // 180px max height (h-48 = 192px minus some padding)
+                  <div className="ml-10 h-full flex items-end gap-px">
+                    {probabilityCurve.map((point, i) => {
+                    const heightPx = (point.probMissing / 100) * 180; // Max 180px for 100%
 
-                    // Check if this bar contains the adjusted time
-                    const isAdjustedInBar = adjustedTotalTimeMinutes >= bar.time &&
-                                           adjustedTotalTimeMinutes < bar.time + 5;
+                    // Check if this is near the adjusted leave time
+                    const isNearAdjusted = Math.abs(point.leaveTime.getTime() - adjustedLeaveTime.getTime()) < 5 * 60 * 1000;
+
+                    // Color based on risk level
+                    let barColor = 'bg-green-500'; // < 5% risk
+                    if (point.probMissing > 20) barColor = 'bg-red-500';
+                    else if (point.probMissing > 10) barColor = 'bg-orange-500';
+                    else if (point.probMissing > 5) barColor = 'bg-yellow-500';
 
                     return (
                       <div
                         key={i}
                         className="flex-1 flex flex-col justify-end"
-                        title={`${bar.time}-${bar.time + 5} min: ${bar.percentage.toFixed(1)}%`}
+                        title={`Leave ${formatTime(point.leaveTime)}: ${point.probMissing.toFixed(1)}% risk`}
                       >
                         <div
                           className={`w-full rounded-t transition-colors ${
-                            isAdjustedInBar ? 'bg-blue-500' : 'bg-indigo-400'
-                          }`}
+                            isNearAdjusted ? 'ring-2 ring-blue-500' : ''
+                          } ${barColor}`}
                           style={{ height: `${heightPx}px` }}
                         />
                       </div>
@@ -444,27 +462,34 @@ export default function TradeoffVisualization({
                 </div>
 
                   {/* X-axis labels (show every 4th) */}
-                  <div className="ml-8 mt-1 flex justify-between text-xs text-gray-500">
-                    {histogramData
+                  <div className="ml-10 mt-1 flex justify-between text-xs text-gray-500">
+                    {probabilityCurve
                       .filter((_, i) => i % 4 === 0)
-                      .map((bar, i) => (
-                        <span key={i}>{bar.time}</span>
+                      .map((point, i) => (
+                        <span key={i}>{formatTime(point.leaveTime)}</span>
                       ))}
-                    <span>min</span>
                   </div>
                 </div>
               )}
 
               {/* Legend */}
-              {histogramData.length > 0 && (
-                <div className="mt-3 flex items-center justify-center gap-4 text-xs text-gray-600">
+              {probabilityCurve.length > 0 && (
+                <div className="mt-3 flex items-center justify-center gap-3 text-xs text-gray-600">
                   <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded bg-indigo-400" />
-                    <span>Distribution</span>
+                    <div className="w-3 h-3 rounded bg-green-500" />
+                    <span>&lt;5% risk</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded bg-blue-500" />
-                    <span>Your adjusted time ({Math.round(adjustedTotalTimeMinutes)} min)</span>
+                    <div className="w-3 h-3 rounded bg-yellow-500" />
+                    <span>5-10%</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded bg-orange-500" />
+                    <span>10-20%</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded bg-red-500" />
+                    <span>&gt;20% risk</span>
                   </div>
                 </div>
               )}
