@@ -163,11 +163,11 @@ export default function TradeoffVisualization({
             <div className="text-sm font-medium text-gray-600 mb-2">Leave between</div>
             <div className="flex items-center justify-center gap-4">
               <div className="text-3xl font-bold text-blue-600">
-                {formatTime(recommendedRange.latest)}
+                {formatTime(recommendedRange.earliest)}
               </div>
               <div className="text-2xl text-gray-400">—</div>
               <div className="text-3xl font-bold text-blue-600">
-                {formatTime(recommendedRange.earliest)}
+                {formatTime(recommendedRange.latest)}
               </div>
             </div>
             <div className="text-sm text-gray-500 mt-2">{formatDate(optimalLeaveTime)}</div>
