@@ -2,18 +2,20 @@
 
 import { motion } from 'framer-motion';
 import type { Recommendation, SimulationInputs } from '../lib/types';
-import { Clock, Plane, TrendingUp, Download } from 'lucide-react';
+import { Clock, Plane, TrendingUp, Download, ArrowLeft } from 'lucide-react';
 
 interface TradeoffVisualizationProps {
   recommendation: Recommendation;
   simulationInputs: SimulationInputs;
   onStartOver: () => void;
+  onBack: () => void;
 }
 
 export default function TradeoffVisualization({
   recommendation,
   simulationInputs,
   onStartOver,
+  onBack,
 }: TradeoffVisualizationProps) {
   const { optimalLeaveTime, recommendedRange, tradeoffMetrics, debugInfo } = recommendation;
 
@@ -232,22 +234,33 @@ export default function TradeoffVisualization({
       )}
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
+      <div className="space-y-3">
+        <div className="flex gap-3">
+          <button
+            onClick={handleDownload}
+            className="flex-1 h-12 rounded-xl font-semibold text-gray-700 bg-white border-2 border-gray-200
+                       hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all
+                       flex items-center justify-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Download Data
+          </button>
+          <button
+            onClick={onStartOver}
+            className="flex-1 h-12 rounded-xl font-semibold text-gray-700 bg-white border-2 border-gray-200
+                       hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all"
+          >
+            Plan Another Trip
+          </button>
+        </div>
         <button
-          onClick={handleDownload}
-          className="flex-1 h-12 rounded-xl font-semibold text-gray-700 bg-white border-2 border-gray-200
-                     hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all
+          onClick={onBack}
+          className="w-full h-12 rounded-xl font-semibold text-gray-600 bg-gray-50
+                     hover:bg-gray-100 active:scale-[0.98] transition-all
                      flex items-center justify-center gap-2"
         >
-          <Download className="h-4 w-4" />
-          Download Data
-        </button>
-        <button
-          onClick={onStartOver}
-          className="flex-1 h-12 rounded-xl font-semibold text-gray-700 bg-white border-2 border-gray-200
-                     hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all"
-        >
-          Plan Another Trip
+          <ArrowLeft className="h-4 w-4" />
+          Edit Preferences
         </button>
       </div>
     </div>

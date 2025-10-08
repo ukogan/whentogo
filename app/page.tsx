@@ -139,6 +139,7 @@ export default function Home() {
                 costPreferences,
               }}
               onStartOver={handleStartOver}
+              onBack={() => setStep('costs')}
             />
           )}
         </div>
