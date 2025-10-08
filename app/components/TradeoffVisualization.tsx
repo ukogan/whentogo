@@ -135,9 +135,9 @@ export default function TradeoffVisualization({
     const numPoints = 20;
     const curve = [];
 
-    // Generate leave times from -60 min to +30 min relative to optimal
+    // Generate leave times from +30 min to -60 min relative to optimal (reversed for left-to-right early-to-late)
     for (let i = 0; i < numPoints; i++) {
-      const offsetMin = -60 + (i * 90 / (numPoints - 1)); // -60 to +30 minutes
+      const offsetMin = 30 - (i * 90 / (numPoints - 1)); // +30 to -60 minutes (reversed)
       const leaveTimeMs = optimalLeaveTime.getTime() - (offsetMin * 60 * 1000);
       const leaveTime = new Date(leaveTimeMs);
 
