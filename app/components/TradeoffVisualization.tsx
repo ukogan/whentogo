@@ -373,10 +373,35 @@ export default function TradeoffVisualization({
             exit={{ opacity: 0, height: 0 }}
             className="mt-4 space-y-4"
           >
-            {/* Histogram Visualization */}
+            {/* Component Distributions */}
+            <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+              <h4 className="text-sm font-medium text-gray-700">
+                Time Component Distributions
+              </h4>
+
+              {/* Travel Time */}
+              <div className="bg-white rounded p-3">
+                <div className="text-xs font-medium text-gray-600 mb-2">
+                  Travel Time: {simulationInputs.travelEstimate.minMinutes}-{simulationInputs.travelEstimate.maxMinutes} min
+                </div>
+                <div className="h-16 bg-gradient-to-r from-transparent via-green-200 to-transparent rounded opacity-60" />
+              </div>
+
+              {/* Security Time */}
+              {debugInfo && (
+                <div className="bg-white rounded p-3">
+                  <div className="text-xs font-medium text-gray-600 mb-2">
+                    Security Time: ~{Math.round(debugInfo.components.security)} min (avg)
+                  </div>
+                  <div className="h-16 bg-gradient-to-r from-transparent via-orange-200 to-transparent rounded opacity-60" />
+                </div>
+              )}
+            </div>
+
+            {/* Total Time Histogram */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h4 className="text-sm font-medium text-gray-700 mb-3">
-                Distribution of Total Travel Times
+                Total Journey Time Distribution
               </h4>
 
               {histogramData.length === 0 ? (
@@ -395,7 +420,7 @@ export default function TradeoffVisualization({
                   <div className="ml-8 h-full flex items-end gap-0.5">
                     {histogramData.map((bar, i) => {
                     const maxPercentage = Math.max(...histogramData.map(d => d.percentage));
-                    const heightPercent = (bar.percentage / maxPercentage) * 100;
+                    const heightPx = (bar.percentage / maxPercentage) * 180; // 180px max height (h-48 = 192px minus some padding)
 
                     // Check if this bar contains the adjusted time
                     const isAdjustedInBar = adjustedTotalTimeMinutes >= bar.time &&
@@ -411,7 +436,7 @@ export default function TradeoffVisualization({
                           className={`w-full rounded-t transition-colors ${
                             isAdjustedInBar ? 'bg-blue-500' : 'bg-indigo-400'
                           }`}
-                          style={{ height: `${heightPercent}%` }}
+                          style={{ height: `${heightPx}px` }}
                         />
                       </div>
                     );
