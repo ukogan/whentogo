@@ -20,6 +20,7 @@ export default function TradeoffVisualization({
 }: TradeoffVisualizationProps) {
   const { optimalLeaveTime, recommendedRange, tradeoffMetrics, debugInfo, samples, flightTime } = recommendation;
   const [adjustmentMinutes, setAdjustmentMinutes] = useState(0);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Download handler for debugging
   const handleDownload = () => {
@@ -106,11 +107,14 @@ export default function TradeoffVisualization({
   //            Positive adjustmentMinutes = leave later (less time) = LOWER confidence
 
   // Adjusted total time = time we're budgeting if we leave at adjusted time
-  const adjustedTotalTimeMinutes = (debugInfo?.totalTimeMinutes || 0) + adjustmentMinutes;
+  // Negative adjustment = leave earlier = MORE time budget (subtract from original)
+  // Positive adjustment = leave later = LESS time budget (subtract from original)
+  const adjustedTotalTimeMinutes = (debugInfo?.totalTimeMinutes || 0) - adjustmentMinutes;
 
   // Calculate exact probability: what % of samples are ≤ our adjusted budget?
-  const samplesUnderAdjusted = samples.filter(s => s <= adjustedTotalTimeMinutes).length;
-  const adjustedConfidence = samplesUnderAdjusted / samples.length;
+  const samplesArray = samples || [];
+  const samplesUnderAdjusted = samplesArray.filter(s => s <= adjustedTotalTimeMinutes).length;
+  const adjustedConfidence = samplesArray.length > 0 ? samplesUnderAdjusted / samplesArray.length : 0;
 
   const baseLabel = getConfidenceLabel(tradeoffMetrics.probMakeFlight);
   const adjustedLabel = getConfidenceLabel(adjustedConfidence);
@@ -118,6 +122,29 @@ export default function TradeoffVisualization({
   // Format adjusted time
   // Negative adjustment = leave earlier (subtract more time from flight)
   const adjustedLeaveTime = new Date(optimalLeaveTime.getTime() - adjustmentMinutes * 60 * 1000);
+
+  // Create histogram data for advanced mode
+  const createHistogram = () => {
+    if (!samplesArray || samplesArray.length === 0) return [];
+
+    const bucketSize = 5; // 5-minute buckets
+    const buckets: Record<number, number> = {};
+
+    samplesArray.forEach(sample => {
+      const bucket = Math.floor(sample / bucketSize) * bucketSize;
+      buckets[bucket] = (buckets[bucket] || 0) + 1;
+    });
+
+    return Object.entries(buckets)
+      .map(([bucket, count]) => ({
+        time: Number(bucket),
+        count,
+        percentage: (count / samplesArray.length) * 100,
+      }))
+      .sort((a, b) => a.time - b.time);
+  };
+
+  const histogramData = showAdvanced ? createHistogram() : [];
 
   return (
     <div className="space-y-8">
@@ -314,37 +341,125 @@ export default function TradeoffVisualization({
         </div>
       </div>
 
-      {/* Debug Info (Collapsible) */}
-      {debugInfo && (
-        <details className="bg-gray-50 rounded-xl p-4 text-sm">
-          <summary className="cursor-pointer font-medium text-gray-700 flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Technical Details
-          </summary>
-          <div className="mt-4 space-y-2 text-gray-600">
-            <div className="grid grid-cols-2 gap-2">
-              <div>Critical fractile (α):</div>
-              <div className="font-mono">{(debugInfo.alpha * 100).toFixed(1)}%</div>
+      {/* Advanced Mode Toggle */}
+      <div className="bg-white rounded-xl p-4 border border-gray-200">
+        <button
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="w-full flex items-center justify-between text-left"
+        >
+          <span className="font-semibold text-gray-900">Advanced Mode</span>
+          <span className="text-sm text-gray-500">
+            {showAdvanced ? 'Hide' : 'Show'} Monte Carlo Distribution
+          </span>
+        </button>
 
-              <div>Total time (L*):</div>
-              <div className="font-mono">{Math.round(debugInfo.totalTimeMinutes)} min</div>
+        {showAdvanced && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-4 space-y-4"
+          >
+            {/* Histogram Visualization */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                Distribution of Total Travel Times
+              </h4>
 
-              <div className="col-span-2 mt-2 font-medium">Components:</div>
-              <div className="pl-4">Travel:</div>
-              <div className="font-mono">{Math.round(debugInfo.components.travel)} min</div>
+              <div className="relative h-48">
+                {/* Y-axis labels */}
+                <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
+                  <span>{Math.max(...histogramData.map(d => d.percentage)).toFixed(0)}%</span>
+                  <span>0%</span>
+                </div>
 
-              <div className="pl-4">Parking:</div>
-              <div className="font-mono">{debugInfo.components.parking} min</div>
+                {/* Chart area */}
+                <div className="ml-8 h-full flex items-end gap-0.5">
+                  {histogramData.map((bar, i) => {
+                    const maxPercentage = Math.max(...histogramData.map(d => d.percentage));
+                    const heightPercent = (bar.percentage / maxPercentage) * 100;
 
-              <div className="pl-4">Security:</div>
-              <div className="font-mono">{Math.round(debugInfo.components.security)} min</div>
+                    // Check if this bar contains the adjusted time
+                    const isAdjustedInBar = adjustedTotalTimeMinutes >= bar.time &&
+                                           adjustedTotalTimeMinutes < bar.time + 5;
 
-              <div className="pl-4">Boarding buffer:</div>
-              <div className="font-mono">{debugInfo.components.boardingBuffer} min</div>
+                    return (
+                      <div
+                        key={i}
+                        className="flex-1 flex flex-col items-center"
+                        title={`${bar.time}-${bar.time + 5} min: ${bar.percentage.toFixed(1)}%`}
+                      >
+                        <div className="w-full bg-gray-200 rounded-t relative" style={{ height: `${heightPercent}%` }}>
+                          <div
+                            className={`w-full h-full rounded-t transition-colors ${
+                              isAdjustedInBar ? 'bg-blue-500' : 'bg-indigo-400'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* X-axis labels (show every 4th) */}
+                <div className="ml-8 mt-1 flex justify-between text-xs text-gray-500">
+                  {histogramData
+                    .filter((_, i) => i % 4 === 0)
+                    .map((bar, i) => (
+                      <span key={i}>{bar.time}</span>
+                    ))}
+                  <span>min</span>
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className="mt-3 flex items-center justify-center gap-4 text-xs text-gray-600">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded bg-indigo-400" />
+                  <span>Distribution</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded bg-blue-500" />
+                  <span>Your adjusted time ({Math.round(adjustedTotalTimeMinutes)} min)</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </details>
-      )}
+
+            {/* Technical Details */}
+            {debugInfo && (
+              <div className="bg-gray-50 rounded-lg p-4 text-sm">
+                <h4 className="font-medium text-gray-700 mb-3">Technical Details</h4>
+                <div className="space-y-2 text-gray-600">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>Target confidence:</div>
+                    <div className="font-mono">{(debugInfo.alpha * 100).toFixed(1)}%</div>
+
+                    <div>Optimal total time:</div>
+                    <div className="font-mono">{Math.round(debugInfo.totalTimeMinutes)} min</div>
+
+                    <div className="col-span-2 mt-2 font-medium">Time Components:</div>
+                    <div className="pl-4">Travel:</div>
+                    <div className="font-mono">{Math.round(debugInfo.components.travel)} min</div>
+
+                    <div className="pl-4">Parking:</div>
+                    <div className="font-mono">{debugInfo.components.parking} min</div>
+
+                    <div className="pl-4">Security:</div>
+                    <div className="font-mono">{Math.round(debugInfo.components.security)} min</div>
+
+                    <div className="pl-4">Boarding buffer:</div>
+                    <div className="font-mono">{debugInfo.components.boardingBuffer} min</div>
+
+                    <div className="col-span-2 mt-2 font-medium">Simulation:</div>
+                    <div className="pl-4">Sample count:</div>
+                    <div className="font-mono">{samples.length.toLocaleString()}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </div>
 
       {/* Action Buttons */}
       <div className="space-y-3">
