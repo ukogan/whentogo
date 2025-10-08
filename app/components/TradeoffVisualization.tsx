@@ -148,10 +148,15 @@ export default function TradeoffVisualization({
       const samplesMissing = samplesArray.filter(s => s > timeBudgetMinutes).length;
       const probMissing = (samplesMissing / samplesArray.length) * 100;
 
+      // Calculate expected wait time at gate = budget - median actual time
+      const medianActualTime = samplesArray.slice().sort((a, b) => a - b)[Math.floor(samplesArray.length / 2)];
+      const expectedWaitMin = Math.max(0, timeBudgetMinutes - medianActualTime);
+
       curve.push({
         leaveTime,
         offsetMin,
         probMissing,
+        expectedWaitMin,
       });
     }
 
@@ -409,6 +414,70 @@ export default function TradeoffVisualization({
                   <div className="h-16 bg-gradient-to-r from-transparent via-orange-200 to-transparent rounded opacity-60" />
                 </div>
               )}
+            </div>
+
+            {/* Cost Trade-off Visualization */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                The Trade-off: Risk of Missing Flight vs Wait Time at Gate
+              </h4>
+
+              {probabilityCurve.length === 0 ? (
+                <div className="h-32 flex items-center justify-center text-gray-500 text-sm">
+                  No trade-off data available
+                </div>
+              ) : (
+                <div className="relative h-32">
+                  {/* Dual axis chart */}
+                  <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-red-600 pr-2 font-medium">
+                    <span>High</span>
+                    <span className="text-gray-400">Risk</span>
+                    <span>Low</span>
+                  </div>
+                  <div className="absolute right-0 top-0 bottom-0 flex flex-col justify-between text-xs text-blue-600 pl-2 font-medium">
+                    <span>Long</span>
+                    <span className="text-gray-400">Wait</span>
+                    <span>Short</span>
+                  </div>
+
+                  {/* Chart area */}
+                  <div className="mx-12 h-full flex items-center gap-px">
+                    {probabilityCurve.map((point, i) => {
+                    const maxWait = Math.max(...probabilityCurve.map(p => p.expectedWaitMin));
+                    const riskHeight = (point.probMissing / 100) * 50; // Max 50% of container
+                    const waitHeight = (point.expectedWaitMin / maxWait) * 50; // Max 50% of container
+
+                    return (
+                      <div key={i} className="flex-1 h-full flex flex-col justify-end items-center gap-0.5">
+                        {/* Wait time bar (blue, top) */}
+                        <div
+                          className="w-full bg-blue-400 opacity-60"
+                          style={{ height: `${waitHeight}%` }}
+                          title={`Wait: ${Math.round(point.expectedWaitMin)} min`}
+                        />
+                        {/* Risk bar (red, bottom) */}
+                        <div
+                          className="w-full bg-red-400 opacity-60"
+                          style={{ height: `${riskHeight}%` }}
+                          title={`Risk: ${point.probMissing.toFixed(1)}%`}
+                        />
+                      </div>
+                    );
+                  })}
+                  </div>
+
+                  {/* X-axis */}
+                  <div className="mx-12 mt-1 flex justify-between text-xs text-gray-500">
+                    <span>Leave earlier</span>
+                    <span>Leave later</span>
+                  </div>
+                </div>
+              )}
+
+              <p className="mt-3 text-xs text-gray-600 italic">
+                Blue (top) = time waiting at gate. Red (bottom) = risk of missing flight.
+                Your optimal time balances these based on your preferences.
+              </p>
             </div>
 
             {/* Probability Curve: Leave Time vs Risk */}
