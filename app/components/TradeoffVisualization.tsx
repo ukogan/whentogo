@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import type { Recommendation, SimulationInputs } from '../lib/types';
 import { Clock, Plane, TrendingUp, Download, ArrowLeft } from 'lucide-react';
 
@@ -18,6 +19,7 @@ export default function TradeoffVisualization({
   onBack,
 }: TradeoffVisualizationProps) {
   const { optimalLeaveTime, recommendedRange, tradeoffMetrics, debugInfo } = recommendation;
+  const [adjustmentMinutes, setAdjustmentMinutes] = useState(0);
 
   // Download handler for debugging
   const handleDownload = () => {
@@ -89,10 +91,6 @@ export default function TradeoffVisualization({
   const numPlanes = 10;
   const filledPlanes = Math.round((safetyScore / 100) * numPlanes);
 
-  // Calculate trade-off tips (±10 minutes)
-  const earlierBy10Score = Math.min(99.5, tradeoffMetrics.probMakeFlight + 0.08); // ~8% boost
-  const laterBy10Score = Math.max(50, tradeoffMetrics.probMakeFlight - 0.12); // ~12% drop
-
   // Convert to qualitative descriptions
   const getConfidenceLabel = (prob: number): string => {
     if (prob >= 0.98) return 'almost certain';
@@ -103,9 +101,18 @@ export default function TradeoffVisualization({
     return 'risky';
   };
 
-  const currentLabel = getConfidenceLabel(tradeoffMetrics.probMakeFlight);
-  const earlierLabel = getConfidenceLabel(earlierBy10Score);
-  const laterLabel = getConfidenceLabel(laterBy10Score);
+  // Calculate adjusted confidence based on slider position
+  // Rough approximation: ±1 minute = ±0.8% confidence change
+  const adjustedConfidence = Math.max(
+    0.50,
+    Math.min(0.995, tradeoffMetrics.probMakeFlight + (adjustmentMinutes * 0.008))
+  );
+
+  const baseLabel = getConfidenceLabel(tradeoffMetrics.probMakeFlight);
+  const adjustedLabel = getConfidenceLabel(adjustedConfidence);
+
+  // Format adjusted time
+  const adjustedLeaveTime = new Date(optimalLeaveTime.getTime() - adjustmentMinutes * 60 * 1000);
 
   return (
     <div className="space-y-8">
@@ -219,37 +226,85 @@ export default function TradeoffVisualization({
         </motion.div>
       </div>
 
-      {/* Trade-off Tips */}
-      <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+      {/* Interactive Time Adjustment Dial */}
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
         <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-gray-600" />
-          Time Trade-offs
+          <TrendingUp className="h-5 w-5 text-blue-600" />
+          Explore Trade-offs
         </h3>
-        <div className="space-y-2 text-sm text-gray-700">
-          {currentLabel !== earlierLabel && (
-            <div className="flex items-start gap-2">
-              <span className="text-green-600 font-medium">↑</span>
-              <p>
-                Leave <span className="font-semibold">10 min earlier</span>: changes from{' '}
-                <span className="font-semibold">{currentLabel}</span> to{' '}
-                <span className="font-semibold text-green-700">{earlierLabel}</span>
-              </p>
-            </div>
-          )}
-          {currentLabel !== laterLabel && (
-            <div className="flex items-start gap-2">
-              <span className="text-orange-600 font-medium">↓</span>
-              <p>
-                Leave <span className="font-semibold">10 min later</span>: changes from{' '}
-                <span className="font-semibold">{currentLabel}</span> to{' '}
-                <span className="font-semibold text-orange-700">{laterLabel}</span>
-              </p>
-            </div>
-          )}
-          {currentLabel === earlierLabel && currentLabel === laterLabel && (
-            <p className="text-gray-600 italic">
-              You're at the sweet spot for your preferences! ✨
+
+        {/* Slider */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
+            <span>Leave earlier</span>
+            <span>Leave later</span>
+          </div>
+          <input
+            type="range"
+            min="-20"
+            max="20"
+            step="1"
+            value={adjustmentMinutes}
+            onChange={(e) => setAdjustmentMinutes(Number(e.target.value))}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer
+                       [&::-webkit-slider-thumb]:appearance-none
+                       [&::-webkit-slider-thumb]:w-5
+                       [&::-webkit-slider-thumb]:h-5
+                       [&::-webkit-slider-thumb]:rounded-full
+                       [&::-webkit-slider-thumb]:bg-blue-500
+                       [&::-webkit-slider-thumb]:cursor-pointer
+                       [&::-webkit-slider-thumb]:shadow-lg
+                       [&::-webkit-slider-thumb]:hover:bg-blue-600
+                       [&::-webkit-slider-thumb]:transition-colors"
+          />
+          <div className="flex items-center justify-center text-xs text-gray-500 mt-1">
+            <span>±20 minutes</span>
+          </div>
+        </div>
+
+        {/* Current adjustment display */}
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          {adjustmentMinutes === 0 ? (
+            <p className="text-center text-gray-600">
+              <span className="font-semibold">Slide to explore</span> how leaving earlier or later affects your odds
             </p>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Adjusted leave time:</span>
+                <span className="text-lg font-bold text-blue-600">
+                  {formatTime(adjustedLeaveTime)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Change:</span>
+                <span className={`text-sm font-semibold ${
+                  adjustmentMinutes > 0 ? 'text-green-600' : 'text-orange-600'
+                }`}>
+                  {adjustmentMinutes > 0 ? '+' : ''}{adjustmentMinutes} min
+                </span>
+              </div>
+              {baseLabel !== adjustedLabel && (
+                <div className="pt-2 border-t border-gray-200">
+                  <p className="text-sm text-gray-700">
+                    Confidence: <span className="font-semibold">{baseLabel}</span>
+                    {' → '}
+                    <span className={`font-semibold ${
+                      adjustmentMinutes > 0 ? 'text-green-700' : 'text-orange-700'
+                    }`}>
+                      {adjustedLabel}
+                    </span>
+                  </p>
+                </div>
+              )}
+              {baseLabel === adjustedLabel && (
+                <div className="pt-2 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 italic">
+                    Still {baseLabel} — minimal change
+                  </p>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
