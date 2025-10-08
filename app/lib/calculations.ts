@@ -195,6 +195,8 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
       probMakeFlight,
       expectedWaitMinutes,
     },
+    samples,
+    flightTime: tripContext.flightTime,
     debugInfo: {
       alpha: targetConfidence,
       totalTimeMinutes: optimalTotalTimeMinutes,

@@ -52,6 +52,8 @@ export interface Recommendation {
     probMakeFlight: number;       // Probability of making flight at optimal time
     expectedWaitMinutes: number;   // Expected wait time at gate
   };
+  samples: number[];              // Monte Carlo samples for interactive exploration
+  flightTime: Date;               // Flight departure time
   debugInfo?: {
     alpha: number;                // Critical fractile ratio
     totalTimeMinutes: number;     // Total time from leave to boarding

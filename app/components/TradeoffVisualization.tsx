@@ -18,7 +18,7 @@ export default function TradeoffVisualization({
   onStartOver,
   onBack,
 }: TradeoffVisualizationProps) {
-  const { optimalLeaveTime, recommendedRange, tradeoffMetrics, debugInfo } = recommendation;
+  const { optimalLeaveTime, recommendedRange, tradeoffMetrics, debugInfo, samples, flightTime } = recommendation;
   const [adjustmentMinutes, setAdjustmentMinutes] = useState(0);
 
   // Download handler for debugging
@@ -101,14 +101,16 @@ export default function TradeoffVisualization({
     return 'risky';
   };
 
-  // Calculate adjusted confidence based on slider position
+  // Calculate EXACT adjusted confidence using Monte Carlo samples
   // IMPORTANT: Negative adjustmentMinutes = leave earlier (more time) = HIGHER confidence
   //            Positive adjustmentMinutes = leave later (less time) = LOWER confidence
-  // Rough approximation: ±1 minute = ∓0.8% confidence change (note the inverse!)
-  const adjustedConfidence = Math.max(
-    0.50,
-    Math.min(0.995, tradeoffMetrics.probMakeFlight - (adjustmentMinutes * 0.008))
-  );
+
+  // Adjusted total time = time we're budgeting if we leave at adjusted time
+  const adjustedTotalTimeMinutes = (debugInfo?.totalTimeMinutes || 0) + adjustmentMinutes;
+
+  // Calculate exact probability: what % of samples are ≤ our adjusted budget?
+  const samplesUnderAdjusted = samples.filter(s => s <= adjustedTotalTimeMinutes).length;
+  const adjustedConfidence = samplesUnderAdjusted / samples.length;
 
   const baseLabel = getConfidenceLabel(tradeoffMetrics.probMakeFlight);
   const adjustedLabel = getConfidenceLabel(adjustedConfidence);
