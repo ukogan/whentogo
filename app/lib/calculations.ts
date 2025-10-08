@@ -14,16 +14,26 @@ import type {
 } from './types';
 
 /**
- * Map cost dial levels to numeric coefficients
- * Uses exponential scaling (base 3) for better emotional differentiation
+ * Map cost preferences to target confidence levels
+ * This replaces the traditional newsvendor model with a more intuitive approach
+ * for flight timing where missing a flight is asymmetrically catastrophic.
+ *
+ * Matrix of confidence levels (rows=costMissing, cols=costWaiting):
+ *
+ *           costWaiting: 1    2    3    4    5
+ * costMissing=1          0.70 0.60 0.50 0.50 0.50
+ * costMissing=2          0.85 0.75 0.70 0.65 0.60
+ * costMissing=3          0.95 0.92 0.90 0.85 0.80
+ * costMissing=4          0.98 0.96 0.95 0.93 0.90
+ * costMissing=5          0.995 0.99 0.98 0.97 0.95
  */
-const COST_COEFFICIENTS = {
-  1: 1,
-  2: 3,
-  3: 9,
-  4: 27,
-  5: 81,
-} as const;
+const CONFIDENCE_MATRIX: Record<number, Record<number, number>> = {
+  1: { 1: 0.70, 2: 0.60, 3: 0.50, 4: 0.50, 5: 0.50 },
+  2: { 1: 0.85, 2: 0.75, 3: 0.70, 4: 0.65, 5: 0.60 },
+  3: { 1: 0.95, 2: 0.92, 3: 0.90, 4: 0.85, 5: 0.80 },
+  4: { 1: 0.98, 2: 0.96, 3: 0.95, 4: 0.93, 5: 0.90 },
+  5: { 1: 0.995, 2: 0.99, 3: 0.98, 4: 0.97, 5: 0.95 },
+};
 
 /**
  * Boarding cutoff times (minutes before flight departure)
@@ -44,11 +54,10 @@ const DEFAULT_PARKING_TIME = 15;
 const NUM_SAMPLES = 10000;
 
 /**
- * Calculate the critical fractile ratio (alpha)
- * α* = C_under / (C_under + C_over)
+ * Get target confidence level from cost preferences
  */
-function calculateAlpha(costMissing: number, costWaiting: number): number {
-  return costMissing / (costMissing + costWaiting);
+function getTargetConfidence(costMissing: number, costWaiting: number): number {
+  return CONFIDENCE_MATRIX[costMissing][costWaiting];
 }
 
 /**
@@ -122,25 +131,23 @@ function runMonteCarloSimulation(inputs: SimulationInputs): number[] {
 export function calculateRecommendation(inputs: SimulationInputs): Recommendation {
   const { tripContext, travelEstimate, costPreferences } = inputs;
 
-  // Map cost levels to coefficients
-  const costMissing = COST_COEFFICIENTS[costPreferences.costMissing];
-  const costWaiting = COST_COEFFICIENTS[costPreferences.costWaiting];
-
-  // Calculate critical fractile
-  const alpha = calculateAlpha(costMissing, costWaiting);
+  // Get target confidence level from preference matrix
+  const targetConfidence = getTargetConfidence(
+    costPreferences.costMissing,
+    costPreferences.costWaiting
+  );
 
   // Run Monte Carlo simulation
   const samples = runMonteCarloSimulation(inputs);
 
-  // Compute optimal total time (L*) at quantile α*
-  const optimalTotalTimeMinutes = computeQuantile(samples, alpha);
+  // Compute optimal total time at target confidence level
+  const optimalTotalTimeMinutes = computeQuantile(samples, targetConfidence);
 
   // Compute range: show trade-off around optimal point
   // Higher percentile = more time budgeted = earlier departure (safer)
   // Lower percentile = less time budgeted = later departure (efficient)
-  // SAFETY: Never recommend less than 80% confidence even for latest/efficient option
-  const earlierPercentile = Math.min(0.95, alpha + 0.15);  // Cap at 95%
-  const laterPercentile = Math.max(0.80, alpha - 0.15);     // Floor at 80%
+  const earlierPercentile = Math.min(0.98, targetConfidence + 0.05);  // Cap at 98%
+  const laterPercentile = Math.max(targetConfidence - 0.10, 0.70);     // Floor at 70%
 
   const earliestTotalTime = computeQuantile(samples, Math.max(earlierPercentile, laterPercentile));
   const latestTotalTime = computeQuantile(samples, Math.min(earlierPercentile, laterPercentile));
@@ -153,8 +160,8 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
   const latest = new Date(flightTime - latestTotalTime * 60 * 1000);     // Less time budgeted = later departure
 
   // Calculate probability of making flight at optimal time
-  // This is just alpha by definition (we chose the alpha quantile)
-  const probMakeFlight = alpha;
+  // This is the target confidence by definition (we chose that quantile)
+  const probMakeFlight = targetConfidence;
 
   // Expected wait time = total time - time actually needed (approximate)
   const medianActualTime = computeQuantile(samples, 0.5);
@@ -189,7 +196,7 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
       expectedWaitMinutes,
     },
     debugInfo: {
-      alpha,
+      alpha: targetConfidence,
       totalTimeMinutes: optimalTotalTimeMinutes,
       components,
     },
