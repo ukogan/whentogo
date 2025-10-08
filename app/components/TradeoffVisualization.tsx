@@ -89,6 +89,24 @@ export default function TradeoffVisualization({
   const numPlanes = 10;
   const filledPlanes = Math.round((safetyScore / 100) * numPlanes);
 
+  // Calculate trade-off tips (±10 minutes)
+  const earlierBy10Score = Math.min(99.5, tradeoffMetrics.probMakeFlight + 0.08); // ~8% boost
+  const laterBy10Score = Math.max(50, tradeoffMetrics.probMakeFlight - 0.12); // ~12% drop
+
+  // Convert to qualitative descriptions
+  const getConfidenceLabel = (prob: number): string => {
+    if (prob >= 0.98) return 'almost certain';
+    if (prob >= 0.93) return 'very likely';
+    if (prob >= 0.85) return 'likely';
+    if (prob >= 0.70) return 'good chance';
+    if (prob >= 0.55) return 'decent chance';
+    return 'risky';
+  };
+
+  const currentLabel = getConfidenceLabel(tradeoffMetrics.probMakeFlight);
+  const earlierLabel = getConfidenceLabel(earlierBy10Score);
+  const laterLabel = getConfidenceLabel(laterBy10Score);
+
   return (
     <div className="space-y-8">
       {/* Main Recommendation Card */}
@@ -199,6 +217,41 @@ export default function TradeoffVisualization({
 
           <p className="text-xs text-gray-500 mt-2">Expected time at the gate</p>
         </motion.div>
+      </div>
+
+      {/* Trade-off Tips */}
+      <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
+        <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-gray-600" />
+          Time Trade-offs
+        </h3>
+        <div className="space-y-2 text-sm text-gray-700">
+          {currentLabel !== earlierLabel && (
+            <div className="flex items-start gap-2">
+              <span className="text-green-600 font-medium">↑</span>
+              <p>
+                Leave <span className="font-semibold">10 min earlier</span>: changes from{' '}
+                <span className="font-semibold">{currentLabel}</span> to{' '}
+                <span className="font-semibold text-green-700">{earlierLabel}</span>
+              </p>
+            </div>
+          )}
+          {currentLabel !== laterLabel && (
+            <div className="flex items-start gap-2">
+              <span className="text-orange-600 font-medium">↓</span>
+              <p>
+                Leave <span className="font-semibold">10 min later</span>: changes from{' '}
+                <span className="font-semibold">{currentLabel}</span> to{' '}
+                <span className="font-semibold text-orange-700">{laterLabel}</span>
+              </p>
+            </div>
+          )}
+          {currentLabel === earlierLabel && currentLabel === laterLabel && (
+            <p className="text-gray-600 italic">
+              You're at the sweet spot for your preferences! ✨
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Debug Info (Collapsible) */}
