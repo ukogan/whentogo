@@ -21,6 +21,7 @@ export default function Home() {
   const [step, setStep] = useState<Step>('context');
   const [tripContext, setTripContext] = useState<TripContext | null>(null);
   const [travelEstimate, setTravelEstimate] = useState<TravelEstimate | null>(null);
+  const [costPreferences, setCostPreferences] = useState<CostPreferences | null>(null);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,6 +56,7 @@ export default function Home() {
 
     try {
       const result = calculateRecommendation(inputs);
+      setCostPreferences(preferences);
       setRecommendation(result);
       setError(null);
       setStep('results');
@@ -67,6 +69,7 @@ export default function Home() {
     setStep('context');
     setTripContext(null);
     setTravelEstimate(null);
+    setCostPreferences(null);
     setRecommendation(null);
     setError(null);
   };
@@ -127,9 +130,14 @@ export default function Home() {
             />
           )}
 
-          {step === 'results' && recommendation && (
+          {step === 'results' && recommendation && tripContext && travelEstimate && costPreferences && (
             <TradeoffVisualization
               recommendation={recommendation}
+              simulationInputs={{
+                tripContext,
+                travelEstimate,
+                costPreferences,
+              }}
               onStartOver={handleStartOver}
             />
           )}

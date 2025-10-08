@@ -1,19 +1,66 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import type { Recommendation } from '../lib/types';
-import { Clock, Plane, TrendingUp } from 'lucide-react';
+import type { Recommendation, SimulationInputs } from '../lib/types';
+import { Clock, Plane, TrendingUp, Download } from 'lucide-react';
 
 interface TradeoffVisualizationProps {
   recommendation: Recommendation;
+  simulationInputs: SimulationInputs;
   onStartOver: () => void;
 }
 
 export default function TradeoffVisualization({
   recommendation,
+  simulationInputs,
   onStartOver,
 }: TradeoffVisualizationProps) {
   const { optimalLeaveTime, recommendedRange, tradeoffMetrics, debugInfo } = recommendation;
+
+  // Download handler for debugging
+  const handleDownload = () => {
+    const data = {
+      timestamp: new Date().toISOString(),
+      inputs: {
+        airport: {
+          code: simulationInputs.tripContext.airport.code,
+          name: simulationInputs.tripContext.airport.name,
+          size: simulationInputs.tripContext.airport.size,
+        },
+        flightTime: simulationInputs.tripContext.flightTime.toISOString(),
+        flightType: simulationInputs.tripContext.flightType,
+        hasCheckedBag: simulationInputs.tripContext.hasCheckedBag,
+        hasPreCheck: simulationInputs.tripContext.hasPreCheck,
+        hasClear: simulationInputs.tripContext.hasClear,
+        travelMode: simulationInputs.travelEstimate.mode,
+        travelMinMinutes: simulationInputs.travelEstimate.minMinutes,
+        travelMaxMinutes: simulationInputs.travelEstimate.maxMinutes,
+        parkingToTerminalMin: simulationInputs.travelEstimate.parkingToTerminalMin,
+        costMissing: simulationInputs.costPreferences.costMissing,
+        costWaiting: simulationInputs.costPreferences.costWaiting,
+      },
+      outputs: {
+        optimalLeaveTime: optimalLeaveTime.toISOString(),
+        recommendedRange: {
+          earliest: recommendedRange.earliest.toISOString(),
+          latest: recommendedRange.latest.toISOString(),
+        },
+        probMakeFlight: tradeoffMetrics.probMakeFlight,
+        expectedWaitMinutes: tradeoffMetrics.expectedWaitMinutes,
+        debugInfo,
+      },
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `airport-timing-${simulationInputs.tripContext.airport.code}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   // Format times
   const formatTime = (date: Date) => {
@@ -181,14 +228,25 @@ export default function TradeoffVisualization({
         </details>
       )}
 
-      {/* Start Over Button */}
-      <button
-        onClick={onStartOver}
-        className="w-full h-12 rounded-xl font-semibold text-gray-700 bg-white border-2 border-gray-200
-                   hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all"
-      >
-        Plan Another Trip
-      </button>
+      {/* Action Buttons */}
+      <div className="flex gap-3">
+        <button
+          onClick={handleDownload}
+          className="flex-1 h-12 rounded-xl font-semibold text-gray-700 bg-white border-2 border-gray-200
+                     hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all
+                     flex items-center justify-center gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Download Data
+        </button>
+        <button
+          onClick={onStartOver}
+          className="flex-1 h-12 rounded-xl font-semibold text-gray-700 bg-white border-2 border-gray-200
+                     hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all"
+        >
+          Plan Another Trip
+        </button>
+      </div>
     </div>
   );
 }
