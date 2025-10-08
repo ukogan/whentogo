@@ -7,7 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "deploy": "npm run build && touch out/.nojekyll && gh-pages -d out -t true"
+    "deploy": "npm run build && touch out/.nojekyll && gh-pages -d out -t"
   },
   "dependencies": {
     "framer-motion": "^12.23.22",
