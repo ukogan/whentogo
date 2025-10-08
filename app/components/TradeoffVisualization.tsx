@@ -312,7 +312,7 @@ export default function TradeoffVisualization({
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Change:</span>
                 <span className={`text-sm font-semibold ${
-                  adjustmentMinutes > 0 ? 'text-green-600' : 'text-orange-600'
+                  adjustmentMinutes < 0 ? 'text-green-600' : 'text-orange-600'
                 }`}>
                   {adjustmentMinutes > 0 ? '+' : ''}{adjustmentMinutes} min
                 </span>
@@ -323,7 +323,7 @@ export default function TradeoffVisualization({
                     Confidence: <span className="font-semibold">{baseLabel}</span>
                     {' → '}
                     <span className={`font-semibold ${
-                      adjustmentMinutes > 0 ? 'text-green-700' : 'text-orange-700'
+                      adjustmentMinutes < 0 ? 'text-green-700' : 'text-orange-700'
                     }`}>
                       {adjustedLabel}
                     </span>
@@ -367,16 +367,21 @@ export default function TradeoffVisualization({
                 Distribution of Total Travel Times
               </h4>
 
-              <div className="relative h-48">
-                {/* Y-axis labels */}
-                <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
-                  <span>{Math.max(...histogramData.map(d => d.percentage)).toFixed(0)}%</span>
-                  <span>0%</span>
+              {histogramData.length === 0 ? (
+                <div className="h-48 flex items-center justify-center text-gray-500 text-sm">
+                  No distribution data available. Samples: {samplesArray.length}
                 </div>
+              ) : (
+                <div className="relative h-48">
+                  {/* Y-axis labels */}
+                  <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-xs text-gray-500 pr-2">
+                    <span>{Math.max(...histogramData.map(d => d.percentage)).toFixed(0)}%</span>
+                    <span>0%</span>
+                  </div>
 
-                {/* Chart area */}
-                <div className="ml-8 h-full flex items-end gap-0.5">
-                  {histogramData.map((bar, i) => {
+                  {/* Chart area */}
+                  <div className="ml-8 h-full flex items-end gap-0.5">
+                    {histogramData.map((bar, i) => {
                     const maxPercentage = Math.max(...histogramData.map(d => d.percentage));
                     const heightPercent = (bar.percentage / maxPercentage) * 100;
 
@@ -402,28 +407,31 @@ export default function TradeoffVisualization({
                   })}
                 </div>
 
-                {/* X-axis labels (show every 4th) */}
-                <div className="ml-8 mt-1 flex justify-between text-xs text-gray-500">
-                  {histogramData
-                    .filter((_, i) => i % 4 === 0)
-                    .map((bar, i) => (
-                      <span key={i}>{bar.time}</span>
-                    ))}
-                  <span>min</span>
+                  {/* X-axis labels (show every 4th) */}
+                  <div className="ml-8 mt-1 flex justify-between text-xs text-gray-500">
+                    {histogramData
+                      .filter((_, i) => i % 4 === 0)
+                      .map((bar, i) => (
+                        <span key={i}>{bar.time}</span>
+                      ))}
+                    <span>min</span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Legend */}
-              <div className="mt-3 flex items-center justify-center gap-4 text-xs text-gray-600">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded bg-indigo-400" />
-                  <span>Distribution</span>
+              {histogramData.length > 0 && (
+                <div className="mt-3 flex items-center justify-center gap-4 text-xs text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded bg-indigo-400" />
+                    <span>Distribution</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded bg-blue-500" />
+                    <span>Your adjusted time ({Math.round(adjustedTotalTimeMinutes)} min)</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded bg-blue-500" />
-                  <span>Your adjusted time ({Math.round(adjustedTotalTimeMinutes)} min)</span>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Technical Details */}
