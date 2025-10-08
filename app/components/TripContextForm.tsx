@@ -38,6 +38,7 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
   const [hasClear, setHasClear] = useState(false);
   const [boardingStartMin, setBoardingStartMin] = useState('30');
   const [doorCloseMin, setDoorCloseMin] = useState('15');
+  const [isFamiliarAirport, setIsFamiliarAirport] = useState(true);
 
   const canContinue = airport && flightDate && flightTime;
 
@@ -57,6 +58,7 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
       hasClear,
       boardingStartMin: parseInt(boardingStartMin, 10),
       doorCloseMin: parseInt(doorCloseMin, 10),
+      isFamiliarAirport,
     };
 
     onComplete(context);
@@ -212,6 +214,19 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
           <Sparkles className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
           <span className="text-base text-gray-700 group-hover:text-gray-900 transition-colors">
             I have CLEAR
+          </span>
+        </label>
+
+        <label className="flex items-center gap-3 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={isFamiliarAirport}
+            onChange={(e) => setIsFamiliarAirport(e.target.checked)}
+            className="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-2 focus:ring-blue-500"
+          />
+          <Plane className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+          <span className="text-base text-gray-700 group-hover:text-gray-900 transition-colors">
+            I&apos;ve flown from this airport before
           </span>
         </label>
       </div>

@@ -84,3 +84,51 @@ export function standardDeviation(samples: number[]): number {
   const variance = mean(squaredDiffs);
   return Math.sqrt(variance);
 }
+
+/**
+ * Generate a random sample from an Exponentially Modified Gaussian (ex-Gaussian) distribution
+ * This distribution has heavier tails than normal/lognormal and is commonly used for
+ * response times and wait times (e.g., TSA security queues).
+ *
+ * ExGaussian = Normal(mu, sigma) + Exponential(lambda)
+ *
+ * @param mu - Mean of the Gaussian component
+ * @param sigma - Standard deviation of the Gaussian component
+ * @param lambda - Rate parameter of the exponential component (controls tail heaviness)
+ * @returns Random sample from ex-Gaussian distribution
+ */
+export function sampleExGaussian(mu: number, sigma: number, lambda: number): number {
+  // Generate normal component using Box-Muller
+  const u1 = Math.random();
+  const u2 = Math.random();
+  const normalSample = mu + sigma * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+
+  // Generate exponential component
+  const exponentialSample = -Math.log(Math.random()) / lambda;
+
+  // Ex-Gaussian is the sum
+  return Math.max(0, normalSample + exponentialSample); // Clamp to non-negative
+}
+
+/**
+ * Fit ex-Gaussian parameters from mean and standard deviation
+ * Uses moment matching: given empirical mean and std, estimate mu, sigma, lambda
+ *
+ * For ex-Gaussian: E[X] = mu + 1/lambda, Var[X] = sigma^2 + 1/lambda^2
+ *
+ * We use a heuristic: assume the exponential tail contributes 30% of variance
+ * This gives heavier tails than lognormal while staying calibrated to observed data
+ */
+export function fitExGaussian(mean: number, std: number): { mu: number; sigma: number; lambda: number } {
+  // Heuristic: exponential component has std = 0.3 * total std (30% of variance from tail)
+  const expStd = 0.3 * std;
+  const lambda = 1 / expStd;
+
+  // Normal component gets the rest
+  const expMean = 1 / lambda;
+  const mu = mean - expMean;
+  const normalVar = std * std - (1 / (lambda * lambda));
+  const sigma = Math.sqrt(Math.max(0, normalVar));
+
+  return { mu, sigma, lambda };
+}

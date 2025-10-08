@@ -19,6 +19,8 @@ export interface Airport {
   city: string;
   size: AirportSize;
   securityPriors: SecurityPriors;
+  hasTerminalTrain?: boolean;    // Does this airport have a train/tram between terminals?
+  trainHeadwayMin?: number;       // Average wait time between trains (e.g., ATL=2, DFW=2.5)
 }
 
 export interface TripContext {
@@ -30,6 +32,7 @@ export interface TripContext {
   hasClear: boolean;
   boardingStartMin: number;  // Minutes before departure when boarding starts (default 30)
   doorCloseMin: number;      // Minutes before departure when door closes (default 15)
+  isFamiliarAirport: boolean; // Have you flown from this airport before? (affects robustness premium)
 }
 
 export interface TravelEstimate {

@@ -3,7 +3,7 @@
  * Implements critical-fractile newsvendor model with Monte Carlo simulation
  */
 
-import { sampleLognormal, fitLognormalFromMinMax, computeQuantile } from './distributions';
+import { sampleLognormal, fitLognormalFromMinMax, sampleExGaussian, fitExGaussian, computeQuantile } from './distributions';
 import type {
   Airport,
   Recommendation,
@@ -51,6 +51,32 @@ const DEFAULT_SECURITY_TO_GATE = 10;
 const NUM_SAMPLES = 10000;
 
 /**
+ * Determine if flight time is during rush hour and return correlation multipliers
+ * Morning rush (6-9am) and evening rush (4-7pm) increase both travel and security times
+ * This models the dependence described in the paper: rush hour hits both simultaneously
+ */
+function getRushHourMultipliers(flightTime: Date): { travel: number; security: number } {
+  const hour = flightTime.getHours();
+  const dayOfWeek = flightTime.getDay(); // 0=Sunday, 6=Saturday
+
+  // Weekend traffic patterns are lighter
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+  // Morning rush: 6am-9am on weekdays
+  if (!isWeekend && hour >= 6 && hour < 9) {
+    return { travel: 1.3, security: 1.2 }; // 30% longer travel, 20% longer security
+  }
+
+  // Evening rush: 4pm-7pm on weekdays
+  if (!isWeekend && hour >= 16 && hour < 19) {
+    return { travel: 1.25, security: 1.15 }; // 25% longer travel, 15% longer security
+  }
+
+  // Off-peak: no multipliers
+  return { travel: 1.0, security: 1.0 };
+}
+
+/**
  * Get target confidence level from cost preferences
  */
 function getTargetConfidence(costMissing: number, costWaiting: number): number {
@@ -94,10 +120,9 @@ function runMonteCarloSimulation(inputs: SimulationInputs): number[] {
     tripContext.hasClear
   );
 
-  // Fit lognormal for security (using mean ± 1.5*std as min/max approximation)
-  const securityMin = Math.max(1, securityParams.mean - 1.5 * securityParams.std);
-  const securityMax = securityParams.mean + 1.5 * securityParams.std;
-  const securityLognormalParams = fitLognormalFromMinMax(securityMin, securityMax);
+  // Fit ex-Gaussian for security (heavier tails than lognormal, as per paper)
+  // Ex-Gaussian better captures "nightmare scenarios" in TSA wait times
+  const securityExGaussParams = fitExGaussian(securityParams.mean, securityParams.std);
 
   // Fixed walking time components
   const parkingTime = travelEstimate.mode === 'driving'
@@ -108,18 +133,36 @@ function runMonteCarloSimulation(inputs: SimulationInputs): number[] {
   const securityToGateTime = travelEstimate.securityToGateMin ?? DEFAULT_SECURITY_TO_GATE;
   const doorCloseBuffer = tripContext.doorCloseMin;
 
+  // Terminal train/tram headway (uniform distribution for wait time)
+  // Paper: "add a uniform distribution for train headways—missing a train can add 10 minutes"
+  const hasTerminalTrain = tripContext.airport.hasTerminalTrain ?? false;
+  const trainHeadwayMin = tripContext.airport.trainHeadwayMin ?? 2.5; // Default: ~2.5 min average
+
+  // Get rush hour multipliers (models dependence: rush hour affects both travel AND security)
+  const rushHourMultipliers = getRushHourMultipliers(tripContext.flightTime);
+
   // Generate samples
   const samples: number[] = [];
   for (let i = 0; i < NUM_SAMPLES; i++) {
-    const travelSample = sampleLognormal(travelParams.mu, travelParams.sigma);
-    const securitySample = sampleLognormal(
-      securityLognormalParams.mu,
-      securityLognormalParams.sigma
-    );
+    // Sample base travel time, then apply rush hour multiplier
+    const baseTravelSample = sampleLognormal(travelParams.mu, travelParams.sigma);
+    const travelSample = baseTravelSample * rushHourMultipliers.travel;
 
-    // Total time: travel + parking + walk to security + security + walk to gate + door close buffer
+    // Sample base security time (ex-Gaussian for fat tails), then apply rush hour multiplier
+    const baseSecuritySample = sampleExGaussian(
+      securityExGaussParams.mu,
+      securityExGaussParams.sigma,
+      securityExGaussParams.lambda
+    );
+    const securitySample = baseSecuritySample * rushHourMultipliers.security;
+
+    // Terminal train wait time (uniform distribution: 0 to 2*headway)
+    // You might just catch the train (0 wait) or just miss it (full headway wait)
+    const trainWaitTime = hasTerminalTrain ? Math.random() * (2 * trainHeadwayMin) : 0;
+
+    // Total time: travel + parking + walk to security + security + train + walk to gate + door close buffer
     const totalTime = travelSample + parkingTime + curbToSecurityTime +
-                     securitySample + securityToGateTime + doorCloseBuffer;
+                     securitySample + trainWaitTime + securityToGateTime + doorCloseBuffer;
     samples.push(totalTime);
   }
 
@@ -142,7 +185,14 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
   const samples = runMonteCarloSimulation(inputs);
 
   // Compute optimal total time at target confidence level
-  const optimalTotalTimeMinutes = computeQuantile(samples, targetConfidence);
+  let optimalTotalTimeMinutes = computeQuantile(samples, targetConfidence);
+
+  // Apply robustness premium for unfamiliar airports (per paper: +15-20 min)
+  // This handles parameter uncertainty when you haven't flown from this airport before
+  if (!tripContext.isFamiliarAirport) {
+    const robustnessPremium = 18; // 18 minutes conservatism margin
+    optimalTotalTimeMinutes += robustnessPremium;
+  }
 
   // Compute range: show trade-off around optimal point
   // Higher percentile = more time budgeted = earlier departure (safer)
