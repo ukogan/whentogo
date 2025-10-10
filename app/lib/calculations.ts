@@ -33,12 +33,6 @@ const CONFIDENCE_MATRIX: Record<number, Record<number, number>> = {
 };
 
 /**
- * Default door close time (minutes before flight departure)
- * This is when the aircraft door shuts and you've missed the flight
- */
-const DEFAULT_DOOR_CLOSE_MIN = 15;
-
-/**
  * Default walking times (minutes)
  */
 const DEFAULT_PARKING_TIME = 15;

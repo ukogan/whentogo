@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import AirportAutocomplete from './AirportAutocomplete';
 import type { TripContext, Airport, FlightType } from '../lib/types';
-import { Calendar, Luggage, ShieldCheck, Sparkles } from 'lucide-react';
+import { Calendar, Luggage, ShieldCheck, Sparkles, Plane } from 'lucide-react';
 
 interface TripContextFormProps {
   onComplete: (context: TripContext) => void;
