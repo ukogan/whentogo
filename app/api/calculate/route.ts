@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { calculateOptimalDepartureTime } from '@/app/lib/calculations';
-import { TripContext, Airport, FlightType } from '@/app/lib/types';
-import { AIRPORTS } from '@/app/lib/airports';
+import { calculateRecommendation } from '@/app/lib/calculations';
+import { SimulationInputs, TripContext } from '@/app/lib/types';
+import { findAirportByCode } from '@/app/lib/airports';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,10 +20,11 @@ export async function POST(request: NextRequest) {
       doorCloseMin = 10,
       isFamiliarAirport = true,
       isDomestic = true,
+      costLevel = 3, // Medium cost preference
     } = body;
 
     // Validate required fields
-    if (!airportCode || !flightTime || !travelTimeMinutes) {
+    if (!airportCode || !flightTime || travelTimeMinutes === undefined) {
       return NextResponse.json(
         { error: 'Missing required fields: airportCode, flightTime, travelTimeMinutes' },
         { status: 400 }
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find airport
-    const airport = AIRPORTS.find(a => a.code === airportCode.toUpperCase());
+    const airport = findAirportByCode(airportCode.toUpperCase());
     if (!airport) {
       return NextResponse.json(
         { error: `Airport ${airportCode} not found` },
@@ -52,18 +53,31 @@ export async function POST(request: NextRequest) {
       isFamiliarAirport,
     };
 
-    // Calculate optimal departure time
-    const result = calculateOptimalDepartureTime(
+    // Build simulation inputs
+    const inputs: SimulationInputs = {
       tripContext,
-      travelTimeMinutes,
-      travelTimeStdDevMinutes
-    );
+      travelEstimate: {
+        mode: 'driving',
+        minMinutes: travelTimeMinutes - travelTimeStdDevMinutes,
+        maxMinutes: travelTimeMinutes + travelTimeStdDevMinutes,
+      },
+      costPreferences: {
+        missFlightCost: costLevel,
+        waitingCost: 6 - costLevel, // Inverse relationship
+      },
+    };
+
+    // Calculate optimal departure time
+    const result = calculateRecommendation(inputs);
+
+    // Calculate arrival time at airport (leave time + travel time)
+    const arrivalTime = new Date(result.optimalLeaveTime.getTime() + travelTimeMinutes * 60000);
 
     // Return iOS-friendly response
     return NextResponse.json({
       success: true,
-      departureTime: result.optimalDepartureTime.toISOString(),
-      departureTimeFormatted: result.optimalDepartureTime.toLocaleString('en-US', {
+      departureTime: result.optimalLeaveTime.toISOString(),
+      departureTimeFormatted: result.optimalLeaveTime.toLocaleString('en-US', {
         weekday: 'short',
         month: 'short',
         day: 'numeric',
@@ -71,23 +85,24 @@ export async function POST(request: NextRequest) {
         minute: '2-digit',
         hour12: true,
       }),
-      leaveHomeTime: result.optimalDepartureTime.toLocaleTimeString('en-US', {
+      leaveHomeTime: result.optimalLeaveTime.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true,
       }),
-      arriveAirportTime: result.arrivalTime.toLocaleTimeString('en-US', {
+      arriveAirportTime: arrivalTime.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true,
       }),
-      totalBufferMinutes: result.totalTimeMinutes,
+      totalBufferMinutes: result.debugInfo?.totalTimeMinutes || 0,
+      probMakeFlight: Math.round(result.tradeoffMetrics.probMakeFlight * 100),
       breakdown: {
         travelMinutes: Math.round(travelTimeMinutes),
-        securityMinutes: result.securityMinutes,
-        walkingMinutes: result.walkingMinutes,
-        parkingMinutes: result.parkingMinutes,
-        boardingMinutes: result.boardingMinutes,
+        securityMinutes: Math.round(result.debugInfo?.components.security || 0),
+        walkingMinutes: Math.round((result.debugInfo?.components.curbToSecurity || 0) + (result.debugInfo?.components.securityToGate || 0)),
+        parkingMinutes: Math.round(result.debugInfo?.components.parking || 0),
+        boardingMinutes: Math.round(result.debugInfo?.components.doorCloseBuffer || 0),
       },
       flightInfo: {
         airport: airport.name,
@@ -105,7 +120,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
