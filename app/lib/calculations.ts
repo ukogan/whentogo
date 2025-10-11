@@ -184,7 +184,7 @@ export function calculateRecommendation(inputs: SimulationInputs): Recommendatio
   // Apply robustness premium for unfamiliar airports (per paper: +15-20 min)
   // This handles parameter uncertainty when you haven't flown from this airport before
   if (!tripContext.isFamiliarAirport) {
-    const robustnessPremium = 18; // 18 minutes conservatism margin
+    const robustnessPremium = 20; // 20 minutes conservatism margin
     optimalTotalTimeMinutes += robustnessPremium;
   }
 

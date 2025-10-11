@@ -138,7 +138,10 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                        }`}
           >
-            International
+            <div className="flex flex-col items-center">
+              <span>International</span>
+              <span className="text-xs opacity-70">(earlier boarding)</span>
+            </div>
           </button>
         </div>
       </div>
@@ -226,7 +229,7 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
           />
           <Plane className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
           <span className="text-base text-gray-700 group-hover:text-gray-900 transition-colors">
-            I&apos;ve flown from this airport before
+            I&apos;ve flown from this airport before <span className="text-sm text-gray-500">(+20 min if not)</span>
           </span>
         </label>
       </div>
