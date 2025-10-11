@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateRecommendation } from '@/app/lib/calculations';
-import { SimulationInputs, TripContext } from '@/app/lib/types';
+import { SimulationInputs, TripContext, CostLevel } from '@/app/lib/types';
 import { findAirportByCode } from '@/app/lib/airports';
 
 export async function POST(request: NextRequest) {
@@ -62,8 +62,8 @@ export async function POST(request: NextRequest) {
         maxMinutes: travelTimeMinutes + travelTimeStdDevMinutes,
       },
       costPreferences: {
-        missFlightCost: costLevel,
-        waitingCost: 6 - costLevel, // Inverse relationship
+        costMissing: costLevel,
+        costWaiting: (6 - costLevel) as CostLevel, // Inverse relationship
       },
     };
 
