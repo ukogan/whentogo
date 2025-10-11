@@ -13,27 +13,27 @@ interface SecuritySelectorProps {
 const securityOptions = {
   regular: {
     label: 'Regular',
-    avg: '38 min',
+    avg: '38',
     min: '25',
-    max: '50 min',
+    max: '50',
     stats: { best: '25', typical: '38', worst: '50' },
     hasPreCheck: false,
     hasClear: false,
   },
   fast: {
     label: 'Fast Lane',
-    avg: '12 min',
+    avg: '12',
     min: '7',
-    max: '17 min',
+    max: '17',
     stats: { best: '7', typical: '12', worst: '17' },
     hasPreCheck: true,
     hasClear: false,
   },
   biometric: {
     label: 'Biometric',
-    avg: '8 min',
+    avg: '8',
     min: '5',
-    max: '11 min',
+    max: '11',
     stats: { best: '5', typical: '8', worst: '11' },
     hasPreCheck: false,
     hasClear: true,
@@ -79,7 +79,7 @@ export default function SecuritySelector({ hasPreCheck, hasClear, onChange }: Se
   return (
     <div className="space-y-5">
       <label className="block text-sm font-medium text-gray-700 mb-2">
-        Security Screening Speed
+        Security:
       </label>
 
       {/* iOS-style pill toggle */}
