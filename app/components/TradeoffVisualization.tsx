@@ -51,7 +51,7 @@ export default function TradeoffVisualization({
           latest: recommendedRange.latest.toISOString(),
         },
         probMakeFlight: tradeoffMetrics.probMakeFlight,
-        expectedWaitMinutes: tradeoffMetrics.expectedWaitMinutes,
+        waitBeforeDoorCloses: tradeoffMetrics.waitBeforeDoorCloses,
         debugInfo,
       },
     };
