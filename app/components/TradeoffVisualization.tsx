@@ -599,7 +599,7 @@ export default function TradeoffVisualization({
                     <div className="font-mono">{debugInfo.components.securityToGate} min</div>
 
                     <div className="pl-4">Boarding buffer:</div>
-                    <div className="font-mono">{debugInfo.components.boardingBuffer} min</div>
+                    <div className="font-mono">{debugInfo.components.doorCloseBuffer} min</div>
 
                     <div className="col-span-2 mt-2 font-medium">Simulation:</div>
                     <div className="pl-4">Sample count:</div>
