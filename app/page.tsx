@@ -86,7 +86,7 @@ export default function Home() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
             <Clock className="h-8 w-8 text-blue-500" />
-            <h1 className="text-3xl font-bold text-gray-900">Airport Timing Advisor</h1>
+            <h1 className="text-3xl font-bold text-gray-900">When To Go</h1>
           </div>
           <p className="text-gray-600">
             Personalized recommendations for when to leave for your flight
