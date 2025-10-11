@@ -159,7 +159,7 @@ Output → Variable: "API Request"
 ### 15. CALL API
 ```
 Action: Get Contents of URL
-URL: https://YOUR-APP.vercel.app/api/calculate
+URL: https://whentoleavefortheairport.vercel.app/api/calculate
 Method: POST
 Headers:
   Content-Type: application/json

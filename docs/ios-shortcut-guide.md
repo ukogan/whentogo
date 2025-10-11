@@ -91,7 +91,7 @@ Set Variable: "RequestBody"
 **Action 9: Call API**
 ```
 Get Contents of URL:
-  - URL: https://YOUR-APP-URL.vercel.app/api/calculate
+  - URL: https://whentoleavefortheairport.vercel.app/api/calculate
   - Method: POST
   - Headers:
       Content-Type: application/json
@@ -175,7 +175,7 @@ Invoke with voice:
 
 ### Basic Request
 ```json
-POST https://your-app.vercel.app/api/calculate
+POST https://whentoleavefortheairport.vercel.app/api/calculate
 
 {
   "airportCode": "SFO",

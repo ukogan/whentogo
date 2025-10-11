@@ -80,7 +80,7 @@ Unlike static "arrive 2 hours early" advice, this uses:
 
 ## API Endpoint
 
-**URL:** `https://your-app.vercel.app/api/calculate`
+**URL:** `https://whentoleavefortheairport.vercel.app/api/calculate`
 
 **Method:** POST
 
