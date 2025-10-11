@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import AirportAutocomplete from './AirportAutocomplete';
 import type { TripContext, Airport, FlightType } from '../lib/types';
-import { Calendar, Luggage, ShieldCheck, Sparkles, Plane } from 'lucide-react';
+import { Calendar, Luggage, Plane } from 'lucide-react';
+import SecuritySelector from './SecuritySelector';
 
 interface TripContextFormProps {
   onComplete: (context: TripContext) => void;
@@ -179,7 +180,17 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
         </div>
       </div>
 
-      {/* Checkboxes */}
+      {/* Security Selector */}
+      <SecuritySelector
+        hasPreCheck={hasPreCheck}
+        hasClear={hasClear}
+        onChange={(preCheck, clear) => {
+          setHasPreCheck(preCheck);
+          setHasClear(clear);
+        }}
+      />
+
+      {/* Other Options */}
       <div className="space-y-3">
         <label className="flex items-center gap-3 cursor-pointer group">
           <input
@@ -191,32 +202,6 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
           <Luggage className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
           <span className="text-base text-gray-700 group-hover:text-gray-900 transition-colors">
             I&apos;m checking a bag
-          </span>
-        </label>
-
-        <label className="flex items-center gap-3 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={hasPreCheck}
-            onChange={(e) => setHasPreCheck(e.target.checked)}
-            className="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-2 focus:ring-blue-500"
-          />
-          <ShieldCheck className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-          <span className="text-base text-gray-700 group-hover:text-gray-900 transition-colors">
-            Fast security: PreCheck/priority lane
-          </span>
-        </label>
-
-        <label className="flex items-center gap-3 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={hasClear}
-            onChange={(e) => setHasClear(e.target.checked)}
-            className="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-2 focus:ring-blue-500"
-          />
-          <Sparkles className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-          <span className="text-base text-gray-700 group-hover:text-gray-900 transition-colors">
-            I have CLEAR
           </span>
         </label>
 
