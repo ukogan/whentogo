@@ -24,27 +24,65 @@ export default function TravelTimeSlider({
 
   return (
     <div className="space-y-4">
-      {/* Gradient Bar Visualization */}
-      <div className="relative h-20 flex items-center mb-2">
-        {/* Gradient Bar */}
-        <div
-          className="relative h-10 rounded-full transition-all duration-300 shadow-md bg-gradient-to-r from-green-400 via-blue-400 to-blue-500"
-          style={{ width: `${barWidthPercent}%` }}
-        >
-          {/* Time markers */}
-          <div className="absolute inset-0 flex items-center justify-between px-4 text-white text-xs font-semibold">
-            <span>{min} min</span>
-            <span>{max} min</span>
+      {/* Thin gradient line with labels below - matches SecuritySelector style */}
+      <div className="relative mt-5 pb-8">
+        <div className="relative h-2 w-full">
+          <div
+            className="absolute h-2 rounded-full transition-all duration-400 ease-out shadow-md"
+            style={{
+              left: `${(min / 120) * 100}%`,
+              width: `${((max - min) / 120) * 100}%`,
+              background: 'linear-gradient(90deg, #10b981 0%, #3b82f6 50%, #f97316 100%)',
+            }}
+          >
+            {/* Shimmer effect */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden rounded-full">
+              <div
+                className="absolute top-0 w-full h-full animate-shimmer"
+                style={{
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+                  animation: 'shimmer 3s linear infinite',
+                }}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Average time bubble */}
-        <div
-          className="absolute bottom-0 flex items-center justify-center"
-          style={{ left: `${(barWidthPercent / 2)}%`, transform: 'translateX(-50%)' }}
-        >
-          <div className="bg-white border-2 border-blue-500 rounded-full px-4 py-1.5 shadow-lg">
-            <span className="text-sm font-semibold text-blue-700">{avg} min</span>
+          {/* Min marker at left edge of gradient bar */}
+          <div
+            className="absolute transition-all duration-400"
+            style={{
+              left: `${(min / 120) * 100}%`,
+              top: '50%',
+              transform: 'translate(-100%, -50%) translateX(-8px)',
+            }}
+          >
+            <span className="text-xs text-gray-600">{min}</span>
+          </div>
+
+          {/* Max marker at right edge of gradient bar */}
+          <div
+            className="absolute transition-all duration-400"
+            style={{
+              left: `${(max / 120) * 100}%`,
+              top: '50%',
+              transform: 'translate(0%, -50%) translateX(8px)',
+            }}
+          >
+            <span className="text-xs text-gray-600">{max}</span>
+          </div>
+
+          {/* Triangle pointer at mean position */}
+          <div
+            className="absolute top-full mt-1 transition-all duration-400"
+            style={{
+              left: `${(avg / 120) * 100}%`,
+              transform: 'translateX(-50%)',
+            }}
+          >
+            <div className="flex flex-col items-center">
+              <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-blue-500" />
+              <span className="text-sm font-bold text-gray-900 mt-1">{avg} min</span>
+            </div>
           </div>
         </div>
       </div>

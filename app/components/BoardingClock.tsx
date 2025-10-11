@@ -81,6 +81,13 @@ export default function BoardingClock({
   const doorPos = polarToCartesian(120, 120, 110, doorAngle);
   const departurePos = polarToCartesian(120, 120, 110, departureAngle);
 
+  // Clock dimensions (w-42 h-42 = 168px, scaled from 240px SVG)
+  const clockDisplaySize = 168; // w-42 in pixels
+  const svgSize = 240; // SVG viewBox size
+  const scale = clockDisplaySize / svgSize;
+  const clockCenter = clockDisplaySize / 2; // 84px
+  const labelRadius = 94.5; // Distance from center to labels
+
   // Format times - subtract minutes from departure
   const formatTime = (offsetMinutes: number) => {
     if (!departureTime) return '--:--';
@@ -94,21 +101,29 @@ export default function BoardingClock({
     });
   };
 
-  // Drag handlers
-  const handleDragStart = (marker: 'boarding' | 'door') => (e: React.MouseEvent) => {
+  // Drag handlers - support both mouse and touch events
+  const handleDragStart = (marker: 'boarding' | 'door') => (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     setIsDragging(marker);
     // Don't change preset when dragging - keep current selection
   };
 
-  const handleDragMove = (e: MouseEvent) => {
+  const getClientPosition = (e: MouseEvent | TouchEvent): { clientX: number; clientY: number } => {
+    if ('touches' in e && e.touches.length > 0) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+    }
+    return { clientX: (e as MouseEvent).clientX, clientY: (e as MouseEvent).clientY };
+  };
+
+  const handleDragMove = (e: MouseEvent | TouchEvent) => {
     if (!isDragging || !clockRef.current) return;
 
+    const { clientX, clientY } = getClientPosition(e);
     const rect = clockRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    const dx = e.clientX - centerX;
-    const dy = e.clientY - centerY;
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
 
     // Calculate angle in degrees
     // atan2(dy, dx) gives angle from center, with 0 at 3 o'clock (right), going counterclockwise
@@ -139,14 +154,18 @@ export default function BoardingClock({
     setIsDragging(null);
   };
 
-  // Add/remove event listeners for drag
+  // Add/remove event listeners for drag - support both mouse and touch
   useEffect(() => {
     if (isDragging) {
       window.addEventListener('mousemove', handleDragMove);
       window.addEventListener('mouseup', handleDragEnd);
+      window.addEventListener('touchmove', handleDragMove, { passive: false });
+      window.addEventListener('touchend', handleDragEnd);
       return () => {
         window.removeEventListener('mousemove', handleDragMove);
         window.removeEventListener('mouseup', handleDragEnd);
+        window.removeEventListener('touchmove', handleDragMove);
+        window.removeEventListener('touchend', handleDragEnd);
       };
     }
   }, [isDragging, boardingMinutes, doorMinutes]);
@@ -155,7 +174,7 @@ export default function BoardingClock({
     <div className="space-y-4">
       {/* Clock Visualization */}
       <div className="flex justify-center py-8">
-        <div ref={clockRef} className="relative w-60 h-60 flex-shrink-0">
+        <div ref={clockRef} className="relative w-42 h-42 flex-shrink-0">
           <svg className="w-full h-full" viewBox="0 0 240 240" style={{ transform: 'rotate(-90deg)' }}>
             {/* Clock face */}
             <circle cx="120" cy="120" r="110" fill="#f7fafc" stroke="#e2e8f0" strokeWidth="2" />
@@ -282,40 +301,44 @@ export default function BoardingClock({
           <div
             className="absolute text-center cursor-grab active:cursor-grabbing select-none transition-transform hover:scale-110"
             style={{
-              left: `${120 + Math.cos((boardingAngle - 90) * Math.PI / 180) * 135}px`,
-              top: `${120 + Math.sin((boardingAngle - 90) * Math.PI / 180) * 135}px`,
-              transform: `translate(-50%, -50%) ${isDragging === 'boarding' ? 'scale(1.1)' : ''}`
+              left: `${clockCenter + Math.cos((boardingAngle - 90) * Math.PI / 180) * labelRadius}px`,
+              top: `${clockCenter + Math.sin((boardingAngle - 90) * Math.PI / 180) * labelRadius}px`,
+              transform: `translate(-50%, -50%) ${isDragging === 'boarding' ? 'scale(1.1)' : ''}`,
+              touchAction: 'none'
             }}
             onMouseDown={handleDragStart('boarding')}
+            onTouchStart={handleDragStart('boarding')}
           >
-            <div className="text-xs font-semibold text-green-700 bg-white/80 px-2 py-1 rounded-md border border-green-300">
+            <div className="text-sm font-semibold text-green-700 bg-white/90 px-4 py-2 rounded-lg border-2 border-green-400 shadow-md whitespace-nowrap">
               {formatTime(boardingMinutes)}
             </div>
-            <div className="text-[10px] text-gray-500">Boarding</div>
+            <div className="text-xs text-gray-600 font-medium mt-1">Boarding</div>
           </div>
 
           {/* Door close time label - draggable */}
           <div
             className="absolute text-center cursor-grab active:cursor-grabbing select-none transition-transform hover:scale-110"
             style={{
-              left: `${120 + Math.cos((doorAngle - 90) * Math.PI / 180) * 135}px`,
-              top: `${120 + Math.sin((doorAngle - 90) * Math.PI / 180) * 135}px`,
-              transform: `translate(-50%, -50%) ${isDragging === 'door' ? 'scale(1.1)' : ''}`
+              left: `${clockCenter + Math.cos((doorAngle - 90) * Math.PI / 180) * labelRadius}px`,
+              top: `${clockCenter + Math.sin((doorAngle - 90) * Math.PI / 180) * labelRadius}px`,
+              transform: `translate(-50%, -50%) ${isDragging === 'door' ? 'scale(1.1)' : ''}`,
+              touchAction: 'none'
             }}
             onMouseDown={handleDragStart('door')}
+            onTouchStart={handleDragStart('door')}
           >
-            <div className="text-xs font-semibold text-orange-600 bg-white/80 px-2 py-1 rounded-md border border-orange-300">
+            <div className="text-sm font-semibold text-orange-600 bg-white/90 px-4 py-2 rounded-lg border-2 border-orange-400 shadow-md whitespace-nowrap">
               {formatTime(doorMinutes)}
             </div>
-            <div className="text-[10px] text-gray-500">Door Close</div>
+            <div className="text-xs text-gray-600 font-medium mt-1">Door Close</div>
           </div>
 
           {/* Departure time label */}
           <div
             className="absolute text-center"
             style={{
-              left: `${120 + Math.cos((departureAngle - 90) * Math.PI / 180) * 135}px`,
-              top: `${120 + Math.sin((departureAngle - 90) * Math.PI / 180) * 135}px`,
+              left: `${clockCenter + Math.cos((departureAngle - 90) * Math.PI / 180) * labelRadius}px`,
+              top: `${clockCenter + Math.sin((departureAngle - 90) * Math.PI / 180) * labelRadius}px`,
               transform: 'translate(-50%, -50%)'
             }}
           >

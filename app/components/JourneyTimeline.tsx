@@ -69,8 +69,8 @@ export default function JourneyTimeline({
     return null;
   }
 
-  // Calculate segment widths based on average times
-  const getSegmentWidth = (step: string): number => {
+  // Calculate segment widths based on average times - moved inside useMemo for proper reactivity
+  const getSegmentWidth = React.useCallback((step: string): number => {
     if (!tripContext && !travelEstimate) return 20; // Equal widths by default
 
     switch (step) {
@@ -82,7 +82,10 @@ export default function JourneyTimeline({
         return 30;
       case 'arrive':
         // Time to get from arrival to bag check or security (5-10 min)
-        return 8;
+        // Add 20 min if unfamiliar with airport
+        const baseArriveTime = 8;
+        const unfamiliarBonus = tripContext?.isFamiliarAirport === false ? 20 : 0;
+        return baseArriveTime + unfamiliarBonus;
       case 'bag':
         // Bag check time
         if (!tripContext?.hasCheckedBag) return 0;
@@ -103,7 +106,7 @@ export default function JourneyTimeline({
       default:
         return 20;
     }
-  };
+  }, [tripContext, travelEstimate]);
 
   // Determine transit icon based on travel mode - use useMemo to avoid recreating on every render
   const transitIcon = React.useMemo(() => {
@@ -123,13 +126,22 @@ export default function JourneyTimeline({
     { key: 'depart', icon: <FlightTakeoffIcon />, label: 'Depart' },
   ], [transitIcon, tripContext]);
 
+  // Memoize segment widths for each step so they recalculate when dependencies change
+  const segmentWidths = React.useMemo(() => {
+    const widths: Record<string, number> = {};
+    steps.forEach(step => {
+      widths[step.key] = getSegmentWidth(step.key);
+    });
+    return widths;
+  }, [steps, getSegmentWidth]);
+
   // Calculate relative widths for flexbox - recalculate when steps change
   const totalMinutes = React.useMemo(() => {
-    return steps.reduce((sum, step) => sum + getSegmentWidth(step.key), 0);
-  }, [steps, tripContext, travelEstimate]);
+    return Object.values(segmentWidths).reduce((sum, width) => sum + width, 0);
+  }, [segmentWidths]);
 
   const getFlexValue = (step: string): number => {
-    const width = getSegmentWidth(step);
+    const width = segmentWidths[step];
     if (width === 0) return 0;
     return Math.max(0.5, width / totalMinutes * 10); // Scale to reasonable flex values
   };
@@ -141,11 +153,18 @@ export default function JourneyTimeline({
           <React.Fragment key={step.key}>
             {/* Step Icon with Time Indicator Ring */}
             <div className="flex flex-col items-center relative z-10">
-              <TimeIndicatorRing minutes={getSegmentWidth(step.key)} size={48} strokeWidth={3}>
+              {/* Only show time rings for duration steps, not fixed points */}
+              {step.key !== 'leave' && step.key !== 'depart' ? (
+                <TimeIndicatorRing minutes={segmentWidths[step.key]} size={48} strokeWidth={3}>
+                  <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0">
+                    {step.icon}
+                  </div>
+                </TimeIndicatorRing>
+              ) : (
                 <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0">
                   {step.icon}
                 </div>
-              </TimeIndicatorRing>
+              )}
             </div>
 
             {/* Connecting Line (except after last step) */}

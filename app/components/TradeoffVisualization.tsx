@@ -3,7 +3,8 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import type { Recommendation, SimulationInputs } from '../lib/types';
-import { Clock, Plane, TrendingUp, Download, ArrowLeft } from 'lucide-react';
+import { Clock, Plane, TrendingUp, Download, ArrowLeft, Calendar } from 'lucide-react';
+import { downloadCalendarEvent } from '../lib/calendarUtils';
 
 interface TradeoffVisualizationProps {
   recommendation: Recommendation;
@@ -231,22 +232,30 @@ export default function TradeoffVisualization({
 
           <div className="text-3xl font-bold text-green-600 mb-3">{safetyScore}%</div>
 
-          {/* Airplane Icons */}
-          <div className="flex gap-1">
-            {Array.from({ length: numPlanes }).map((_, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 + i * 0.05 }}
-              >
-                <Plane
-                  className={`h-4 w-4 ${
-                    i < filledPlanes ? 'text-green-500 fill-green-500' : 'text-gray-300'
-                  }`}
-                />
-              </motion.div>
-            ))}
+          {/* Single large airplane filled to percentage */}
+          <div className="relative h-16 flex items-center justify-center">
+            <svg
+              viewBox="0 0 24 24"
+              className="w-32 h-32"
+              style={{ transform: 'rotate(45deg)' }}
+            >
+              {/* Background airplane (gray) */}
+              <path
+                d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
+                fill="#e5e7eb"
+              />
+              {/* Filled airplane (green) - clipped to percentage */}
+              <defs>
+                <clipPath id={`plane-clip-${safetyScore}`}>
+                  <rect x="0" y="0" width="24" height={24 * (safetyScore / 100)} />
+                </clipPath>
+              </defs>
+              <path
+                d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
+                fill="#10b981"
+                clipPath={`url(#plane-clip-${safetyScore})`}
+              />
+            </svg>
           </div>
 
           <p className="text-xs text-gray-500 mt-2">Chance you&apos;ll make your flight</p>
@@ -614,6 +623,15 @@ export default function TradeoffVisualization({
 
       {/* Action Buttons */}
       <div className="space-y-3">
+        <button
+          onClick={() => downloadCalendarEvent(recommendation, simulationInputs)}
+          className="w-full h-14 rounded-xl font-semibold text-white bg-blue-500
+                     hover:bg-blue-600 active:scale-[0.98] transition-all
+                     flex items-center justify-center gap-2 shadow-lg"
+        >
+          <Calendar className="h-5 w-5" />
+          Add to Calendar
+        </button>
         <div className="flex gap-3">
           <button
             onClick={handleDownload}
