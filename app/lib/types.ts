@@ -28,6 +28,7 @@ export interface TripContext {
   flightTime: Date;
   flightType: FlightType;
   hasCheckedBag: boolean;
+  hasPriorityBagCheck: boolean; // Priority bag drop (airline status, premium cabin)
   hasPreCheck: boolean;
   hasClear: boolean;
   boardingStartMin: number;  // Minutes before departure when boarding starts (default 30)

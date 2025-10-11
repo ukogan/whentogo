@@ -118,6 +118,18 @@ function runMonteCarloSimulation(inputs: SimulationInputs): number[] {
   // Ex-Gaussian better captures "nightmare scenarios" in TSA wait times
   const securityExGaussParams = fitExGaussian(securityParams.mean, securityParams.std);
 
+  // Fit lognormal for bag check time (if applicable)
+  let bagCheckParams = null;
+  if (tripContext.hasCheckedBag) {
+    if (tripContext.hasPriorityBagCheck) {
+      // Priority bag: 3-8 min (avg 5)
+      bagCheckParams = fitLognormalFromMinMax(3, 8);
+    } else {
+      // Regular bag: 7-25 min (avg 12)
+      bagCheckParams = fitLognormalFromMinMax(7, 25);
+    }
+  }
+
   // Fixed walking time components
   const parkingTime = travelEstimate.mode === 'driving'
     ? (travelEstimate.parkingToTerminalMin ?? DEFAULT_PARKING_TIME)
@@ -150,12 +162,17 @@ function runMonteCarloSimulation(inputs: SimulationInputs): number[] {
     );
     const securitySample = baseSecuritySample * rushHourMultipliers.security;
 
+    // Sample bag check time (if applicable)
+    const bagCheckSample = bagCheckParams
+      ? sampleLognormal(bagCheckParams.mu, bagCheckParams.sigma)
+      : 0;
+
     // Terminal train wait time (uniform distribution: 0 to 2*headway)
     // You might just catch the train (0 wait) or just miss it (full headway wait)
     const trainWaitTime = hasTerminalTrain ? Math.random() * (2 * trainHeadwayMin) : 0;
 
-    // Total time: travel + parking + walk to security + security + train + walk to gate + door close buffer
-    const totalTime = travelSample + parkingTime + curbToSecurityTime +
+    // Total time: travel + parking + walk to security + bag check + security + train + walk to gate + door close buffer
+    const totalTime = travelSample + parkingTime + curbToSecurityTime + bagCheckSample +
                      securitySample + trainWaitTime + securityToGateTime + doorCloseBuffer;
     samples.push(totalTime);
   }

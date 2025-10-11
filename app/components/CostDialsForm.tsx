@@ -25,19 +25,19 @@ export default function CostDialsForm({ onComplete, onBack }: CostDialsFormProps
   };
 
   const missingOptions = [
-    { value: 1 as CostLevel, label: "No big deal — I'd just catch another" },
-    { value: 2 as CostLevel, label: 'It would throw off my day' },
-    { value: 3 as CostLevel, label: 'It would cause serious stress' },
-    { value: 4 as CostLevel, label: 'It would cost real money or create trouble' },
-    { value: 5 as CostLevel, label: 'It would ruin my plans — I cannot miss it' },
+    { value: 1 as CostLevel, label: "No big deal, I'd catch another flight" },
+    { value: 2 as CostLevel, label: 'Annoying and inconvenient' },
+    { value: 3 as CostLevel, label: 'Very stressful' },
+    { value: 4 as CostLevel, label: 'Expensive or creates major problems' },
+    { value: 5 as CostLevel, label: 'Catastrophic — I cannot miss this' },
   ];
 
   const waitingOptions = [
-    { value: 1 as CostLevel, label: "I don't mind waiting — I'll grab coffee" },
-    { value: 2 as CostLevel, label: "It's mildly annoying" },
-    { value: 3 as CostLevel, label: "I'd rather not waste time" },
-    { value: 4 as CostLevel, label: 'It feels wasteful' },
-    { value: 5 as CostLevel, label: 'I really hate sitting around' },
+    { value: 1 as CostLevel, label: "No problem, I'll grab coffee" },
+    { value: 2 as CostLevel, label: 'A bit boring' },
+    { value: 3 as CostLevel, label: 'A waste of time' },
+    { value: 4 as CostLevel, label: 'Really annoying' },
+    { value: 5 as CostLevel, label: 'Unbearable — I hate waiting' },
   ];
 
   return (
@@ -47,7 +47,7 @@ export default function CostDialsForm({ onComplete, onBack }: CostDialsFormProps
         <div className="flex items-center gap-3 mb-4">
           <AlertCircle className="h-6 w-6 text-red-500" />
           <label className="text-lg font-semibold text-gray-900">
-            If you missed this flight, how bad would that be?
+            Missing the flight would be:
           </label>
         </div>
 
@@ -95,7 +95,7 @@ export default function CostDialsForm({ onComplete, onBack }: CostDialsFormProps
         <div className="flex items-center gap-3 mb-4">
           <Clock className="h-6 w-6 text-blue-500" />
           <label className="text-lg font-semibold text-gray-900">
-            If you got there too early, how much would that bother you?
+            Extra time in the airport is:
           </label>
         </div>
 

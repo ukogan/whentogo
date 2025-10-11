@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { TravelEstimate, TravelMode } from '../lib/types';
 import { Car, Navigation, Train } from 'lucide-react';
+import TravelTimeSlider from './TravelTimeSlider';
 
 interface TravelEstimateFormProps {
   onComplete: (estimate: TravelEstimate) => void;
@@ -100,33 +101,12 @@ export default function TravelEstimateForm({ onComplete, onBack }: TravelEstimat
         <label className="block text-sm font-medium text-gray-700 mb-3">
           About how long does it usually take you to get to the airport?
         </label>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Fastest (minutes)</label>
-            <input
-              type="number"
-              value={minMinutes}
-              onChange={(e) => setMinMinutes(e.target.value)}
-              min="1"
-              placeholder="e.g., 20"
-              className="w-full h-12 px-4 text-base bg-white border border-gray-200 rounded-xl
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Slowest (minutes)</label>
-            <input
-              type="number"
-              value={maxMinutes}
-              onChange={(e) => setMaxMinutes(e.target.value)}
-              min="1"
-              placeholder="e.g., 45"
-              className="w-full h-12 px-4 text-base bg-white border border-gray-200 rounded-xl
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </div>
+        <TravelTimeSlider
+          minMinutes={minMinutes}
+          maxMinutes={maxMinutes}
+          onMinChange={setMinMinutes}
+          onMaxChange={setMaxMinutes}
+        />
 
         {minMinutes && maxMinutes && Number(minMinutes) >= Number(maxMinutes) && (
           <p className="mt-2 text-sm text-red-500">

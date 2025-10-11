@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AirportAutocomplete from './AirportAutocomplete';
 import type { TripContext, Airport, FlightType } from '../lib/types';
-import { Calendar, Luggage, Plane } from 'lucide-react';
+import { Calendar, Plane } from 'lucide-react';
 import SecuritySelector from './SecuritySelector';
+import BagCheckSelector from './BagCheckSelector';
 
 interface TripContextFormProps {
   onComplete: (context: TripContext) => void;
@@ -35,11 +36,23 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
   const [flightTime, setFlightTime] = useState(defaultTime);
   const [flightType, setFlightType] = useState<FlightType>('domestic');
   const [hasCheckedBag, setHasCheckedBag] = useState(false);
+  const [hasPriorityBagCheck, setHasPriorityBagCheck] = useState(false);
   const [hasPreCheck, setHasPreCheck] = useState(false);
   const [hasClear, setHasClear] = useState(false);
   const [boardingStartMin, setBoardingStartMin] = useState('30');
   const [doorCloseMin, setDoorCloseMin] = useState('15');
-  const [isFamiliarAirport, setIsFamiliarAirport] = useState(true);
+  const [isUnfamiliarAirport, setIsUnfamiliarAirport] = useState(false);
+
+  // Update boarding times when flight type changes
+  useEffect(() => {
+    if (flightType === 'domestic') {
+      setBoardingStartMin('30');
+      setDoorCloseMin('10');
+    } else {
+      setBoardingStartMin('45');
+      setDoorCloseMin('15');
+    }
+  }, [flightType]);
 
   const canContinue = airport && flightDate && flightTime;
 
@@ -55,11 +68,12 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
       flightTime: flightDateTime,
       flightType,
       hasCheckedBag,
+      hasPriorityBagCheck,
       hasPreCheck,
       hasClear,
       boardingStartMin: parseInt(boardingStartMin, 10),
       doorCloseMin: parseInt(doorCloseMin, 10),
-      isFamiliarAirport,
+      isFamiliarAirport: !isUnfamiliarAirport, // Invert: unchecked means familiar
     };
 
     onComplete(context);
@@ -70,7 +84,7 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
       {/* Airport Selection */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Which airport are you flying from?
+          Departure airport
         </label>
         <AirportAutocomplete
           selectedAirport={airport}
@@ -190,31 +204,28 @@ export default function TripContextForm({ onComplete }: TripContextFormProps) {
         }}
       />
 
+      {/* Bag Check Selector */}
+      <BagCheckSelector
+        hasCheckedBag={hasCheckedBag}
+        hasPriorityBagCheck={hasPriorityBagCheck}
+        onChange={(checkedBag, priorityCheck) => {
+          setHasCheckedBag(checkedBag);
+          setHasPriorityBagCheck(priorityCheck);
+        }}
+      />
+
       {/* Other Options */}
       <div className="space-y-3">
         <label className="flex items-center gap-3 cursor-pointer group">
           <input
             type="checkbox"
-            checked={hasCheckedBag}
-            onChange={(e) => setHasCheckedBag(e.target.checked)}
-            className="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-2 focus:ring-blue-500"
-          />
-          <Luggage className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-          <span className="text-base text-gray-700 group-hover:text-gray-900 transition-colors">
-            I&apos;m checking a bag
-          </span>
-        </label>
-
-        <label className="flex items-center gap-3 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={isFamiliarAirport}
-            onChange={(e) => setIsFamiliarAirport(e.target.checked)}
+            checked={isUnfamiliarAirport}
+            onChange={(e) => setIsUnfamiliarAirport(e.target.checked)}
             className="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-2 focus:ring-blue-500"
           />
           <Plane className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
           <span className="text-base text-gray-700 group-hover:text-gray-900 transition-colors">
-            I&apos;ve flown from this airport before <span className="text-sm text-gray-500">(+20 min if not)</span>
+            Unfamiliar airport <span className="text-sm text-gray-500">(+20 min)</span>
           </span>
         </label>
       </div>

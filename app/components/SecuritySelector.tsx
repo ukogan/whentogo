@@ -147,22 +147,6 @@ export default function SecuritySelector({ hasPreCheck, hasClear, onChange }: Se
         </div>
       </div>
 
-      {/* Statistics row */}
-      <div className="grid grid-cols-3 gap-3 pt-5 border-t border-gray-200">
-        <div className="text-center">
-          <div className="text-lg font-bold text-green-600">{data.stats.best}</div>
-          <div className="text-[11px] text-gray-500 mt-0.5">Best Case</div>
-        </div>
-        <div className="text-center">
-          <div className="text-lg font-bold text-blue-600">{data.stats.typical}</div>
-          <div className="text-[11px] text-gray-500 mt-0.5">Typical</div>
-        </div>
-        <div className="text-center">
-          <div className="text-lg font-bold text-orange-600">{data.stats.worst}</div>
-          <div className="text-[11px] text-gray-500 mt-0.5">Worst Case</div>
-        </div>
-      </div>
-
       <style jsx>{`
         @keyframes shimmer {
           from {
