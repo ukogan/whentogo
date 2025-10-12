@@ -11,11 +11,11 @@ interface CostDialsFormProps {
 
 // Confidence matrix from calculations.ts
 const CONFIDENCE_MATRIX: Record<number, Record<number, number>> = {
-  1: { 1: 0.70, 2: 0.60, 3: 0.50, 4: 0.50, 5: 0.50 },
-  2: { 1: 0.85, 2: 0.75, 3: 0.70, 4: 0.65, 5: 0.60 },
-  3: { 1: 0.95, 2: 0.92, 3: 0.90, 4: 0.85, 5: 0.80 },
-  4: { 1: 0.98, 2: 0.96, 3: 0.95, 4: 0.93, 5: 0.90 },
-  5: { 1: 0.995, 2: 0.99, 3: 0.98, 4: 0.97, 5: 0.95 },
+  1: { 1: 0.80, 2: 0.75, 3: 0.70, 4: 0.65, 5: 0.63 },
+  2: { 1: 0.90, 2: 0.87, 3: 0.84, 4: 0.81, 5: 0.78 },
+  3: { 1: 0.99, 2: 0.97, 3: 0.95, 4: 0.93, 5: 0.91 },
+  4: { 1: 0.9999, 2: 0.9995, 3: 0.9993, 4: 0.9991, 5: 0.9989 },
+  5: { 1: 0.999999, 2: 0.999995, 3: 0.999993, 4: 0.999991, 5: 0.999989 },
 };
 
 export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
@@ -29,12 +29,15 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
     // Estimate gate wait time based on confidence level
     // Higher confidence = earlier arrival = more wait time
     // This is a rough approximation for preview purposes
-    let estimatedWaitMin = 5;
-    if (confidence >= 0.98) estimatedWaitMin = 25;
+    let estimatedWaitMin = 3;
+    if (confidence >= 0.999) estimatedWaitMin = 35;
+    else if (confidence >= 0.99) estimatedWaitMin = 25;
     else if (confidence >= 0.95) estimatedWaitMin = 18;
     else if (confidence >= 0.90) estimatedWaitMin = 12;
-    else if (confidence >= 0.80) estimatedWaitMin = 8;
-    else if (confidence >= 0.70) estimatedWaitMin = 5;
+    else if (confidence >= 0.85) estimatedWaitMin = 9;
+    else if (confidence >= 0.80) estimatedWaitMin = 7;
+    else if (confidence >= 0.75) estimatedWaitMin = 5;
+    else if (confidence >= 0.70) estimatedWaitMin = 4;
     else estimatedWaitMin = 3;
 
     return {
