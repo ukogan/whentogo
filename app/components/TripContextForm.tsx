@@ -6,7 +6,7 @@ import type { TripContext, Airport } from '../lib/types';
 import { Plane } from 'lucide-react';
 import SecuritySelector from './SecuritySelector';
 import BagCheckSelector from './BagCheckSelector';
-import BoardingClock from './BoardingClock';
+import TimelineSlider from './TimelineSlider';
 
 interface TripContextFormProps {
   onComplete: (context: TripContext) => void;
@@ -121,12 +121,12 @@ export default function TripContextForm({ onComplete, onPartialUpdate }: TripCon
         }}
       />
 
-      {/* Boarding Clock */}
+      {/* Timeline Slider */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">
           Gate Time
         </label>
-        <BoardingClock
+        <TimelineSlider
           boardingMinutes={parseInt(boardingStartMin, 10)}
           doorMinutes={parseInt(doorCloseMin, 10)}
           onBoardingChange={(min) => {
