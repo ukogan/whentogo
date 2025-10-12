@@ -64,11 +64,6 @@ export default function JourneyTimeline({
   travelEstimate,
   currentSection,
 }: JourneyTimelineProps) {
-  // Don't show on intro section only
-  if (currentSection === 'intro') {
-    return null;
-  }
-
   // Calculate segment widths based on average times - moved inside useMemo for proper reactivity
   const getSegmentWidth = React.useCallback((step: string): number => {
     if (!tripContext && !travelEstimate) return 20; // Equal widths by default
@@ -114,7 +109,7 @@ export default function JourneyTimeline({
     if (mode === 'transit') return <TransitIcon />;
     if (mode === 'rideshare') return <RideshareIcon />;
     return <DirectionsCarIcon />; // Default to car for 'driving' or undefined
-  }, [travelEstimate, tripContext]);
+  }, [travelEstimate]);
 
   // Build steps array reactively based on props
   const steps = React.useMemo(() => [
@@ -145,6 +140,11 @@ export default function JourneyTimeline({
     if (width === 0) return 0;
     return Math.max(0.5, width / totalMinutes * 10); // Scale to reasonable flex values
   };
+
+  // Don't show on intro section only
+  if (currentSection === 'intro') {
+    return null;
+  }
 
   return (
     <div className="w-full py-2 px-4">

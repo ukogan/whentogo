@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import type { Recommendation, SimulationInputs } from '../lib/types';
-import { Clock, Plane, TrendingUp, Download, ArrowLeft, Calendar } from 'lucide-react';
+import { TrendingUp, Download, ArrowLeft, Calendar } from 'lucide-react';
 import { downloadCalendarEvent } from '../lib/calendarUtils';
 
 interface TradeoffVisualizationProps {
@@ -77,22 +77,10 @@ export default function TradeoffVisualization({
     });
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
   // Calculate visual metrics
   const safetyScore = Math.round(tradeoffMetrics.probMakeFlight * 100);
   const waitMinutes = Math.round(tradeoffMetrics.waitBeforeDoorCloses);
   const boardingMinutes = Math.abs(Math.round(tradeoffMetrics.timeRelativeToBoardingStart));
-
-  // Generate airplane icons for safety visualization
-  const numPlanes = 10;
-  const filledPlanes = Math.round((safetyScore / 100) * numPlanes);
 
   // Convert to qualitative descriptions
   const getConfidenceLabel = (prob: number): string => {

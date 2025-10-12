@@ -65,7 +65,7 @@ export default function BoardingClock({
   // Extract the minute value from departure time to show on clock face
   const getMinuteAngle = (timeString: string, offsetMinutes: number) => {
     if (!timeString) return 0;
-    const [hours, mins] = timeString.split(':').map(Number);
+    const [, mins] = timeString.split(':').map(Number);
     const totalMinutes = mins - offsetMinutes;
     // Convert to positive minute value (0-59)
     const displayMinute = ((totalMinutes % 60) + 60) % 60;
@@ -82,10 +82,7 @@ export default function BoardingClock({
   const departurePos = polarToCartesian(120, 120, 110, departureAngle);
 
   // Clock dimensions (w-42 h-42 = 168px, scaled from 240px SVG)
-  const clockDisplaySize = 168; // w-42 in pixels
-  const svgSize = 240; // SVG viewBox size
-  const scale = clockDisplaySize / svgSize;
-  const clockCenter = clockDisplaySize / 2; // 84px
+  const clockCenter = 168 / 2; // 84px
   const labelRadius = 94.5; // Distance from center to labels
 
   // Format times - subtract minutes from departure

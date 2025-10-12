@@ -15,12 +15,7 @@ export default function TravelTimeSlider({
 }: TravelTimeSliderProps) {
   const min = Number(minMinutes) || 0;
   const max = Number(maxMinutes) || 60;
-  const range = max - min;
   const avg = Math.round((min + max) / 2);
-
-  // Calculate bar width based on range (smaller range = shorter bar)
-  const maxRange = 60; // Maximum expected range
-  const barWidthPercent = Math.min(100, (range / maxRange) * 100 + 20);
 
   return (
     <div className="space-y-4">

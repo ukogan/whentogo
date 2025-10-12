@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import AirportAutocomplete from './AirportAutocomplete';
 import type { TripContext, Airport, FlightType } from '../lib/types';
-import { Calendar, Plane } from 'lucide-react';
+import { Plane } from 'lucide-react';
 import SecuritySelector from './SecuritySelector';
 import BagCheckSelector from './BagCheckSelector';
 import BoardingClock from './BoardingClock';
@@ -28,7 +28,6 @@ export default function TripContextForm({ onComplete, onPartialUpdate }: TripCon
   };
 
   const [airport, setAirport] = useState<Airport | null>(defaultAirport);
-  const [flightType, setFlightType] = useState<FlightType>('domestic');
   const [hasCheckedBag, setHasCheckedBag] = useState(false);
   const [hasPriorityBagCheck, setHasPriorityBagCheck] = useState(false);
   const [hasPreCheck, setHasPreCheck] = useState(false);
