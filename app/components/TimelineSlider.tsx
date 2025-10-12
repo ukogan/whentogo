@@ -104,9 +104,9 @@ export default function TimelineSlider({
     <div className="space-y-6">
       {/* Timeline visualization */}
       <div className="px-4">
-        {/* Time labels above timeline */}
-        <div className="relative mb-2 h-16">
-          {/* Boarding time */}
+        {/* Labels above timeline */}
+        <div className="relative mb-2 h-6">
+          {/* Boarding label */}
           <div
             className="absolute transition-transform"
             style={{
@@ -114,13 +114,10 @@ export default function TimelineSlider({
               transform: 'translateX(-50%)',
             }}
           >
-            <div className="text-xs font-semibold text-green-700 bg-white px-2 py-1 rounded border border-green-400 shadow-sm whitespace-nowrap mb-1">
-              {formatTime(boardingMinutes)}
-            </div>
             <div className="text-[10px] text-gray-600 text-center">Boarding</div>
           </div>
 
-          {/* Door close time */}
+          {/* Door close label */}
           <div
             className="absolute transition-transform"
             style={{
@@ -128,13 +125,10 @@ export default function TimelineSlider({
               transform: 'translateX(-50%)',
             }}
           >
-            <div className="text-xs font-semibold text-orange-600 bg-white px-2 py-1 rounded border border-orange-400 shadow-sm whitespace-nowrap mb-1">
-              {formatTime(doorMinutes)}
-            </div>
             <div className="text-[10px] text-gray-600 text-center">Door</div>
           </div>
 
-          {/* Departure time */}
+          {/* Departure label */}
           <div
             className="absolute"
             style={{
@@ -142,9 +136,6 @@ export default function TimelineSlider({
               transform: 'translateX(-50%)',
             }}
           >
-            <div className="text-xs font-semibold text-red-600 bg-white px-2 py-1 rounded border border-red-400 shadow-sm whitespace-nowrap mb-1">
-              {formatTime(0)}
-            </div>
             <div className="text-[10px] text-gray-600 text-center">Depart</div>
           </div>
         </div>
@@ -206,13 +197,13 @@ export default function TimelineSlider({
           />
         </div>
 
-        {/* Minute markers below timeline */}
+        {/* Time markers below timeline */}
         <div className="relative mt-2 h-4">
           <div className="flex justify-between text-[10px] text-gray-500">
-            <span>90 min</span>
-            <span>60 min</span>
-            <span>30 min</span>
-            <span>0</span>
+            <span>{formatTime(90)}</span>
+            <span>{formatTime(60)}</span>
+            <span>{formatTime(30)}</span>
+            <span>{formatTime(0)}</span>
           </div>
         </div>
       </div>
