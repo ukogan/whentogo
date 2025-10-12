@@ -32,7 +32,7 @@ export function generateCalendarEvent(
   );
 
   // Estimate when user clears security (using debug info)
-  const avgSecurityMin = debugInfo?.securityStat?.mean || 20;
+  const avgSecurityMin = debugInfo?.components?.security || 20;
   const clearSecurityTime = new Date(
     arriveSecurityTime.getTime() + avgSecurityMin * 60000
   );
