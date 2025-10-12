@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { CostPreferences, CostLevel } from '../lib/types';
 import EmotionalSlider from './EmotionalSlider';
 
@@ -9,9 +9,39 @@ interface CostDialsFormProps {
   onBack: () => void;
 }
 
+// Confidence matrix from calculations.ts
+const CONFIDENCE_MATRIX: Record<number, Record<number, number>> = {
+  1: { 1: 0.70, 2: 0.60, 3: 0.50, 4: 0.50, 5: 0.50 },
+  2: { 1: 0.85, 2: 0.75, 3: 0.70, 4: 0.65, 5: 0.60 },
+  3: { 1: 0.95, 2: 0.92, 3: 0.90, 4: 0.85, 5: 0.80 },
+  4: { 1: 0.98, 2: 0.96, 3: 0.95, 4: 0.93, 5: 0.90 },
+  5: { 1: 0.995, 2: 0.99, 3: 0.98, 4: 0.97, 5: 0.95 },
+};
+
 export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
   const [costMissing, setCostMissing] = useState<CostLevel>(3);
   const [costWaiting, setCostWaiting] = useState<CostLevel>(3);
+
+  // Calculate preview metrics
+  const previewMetrics = useMemo(() => {
+    const confidence = CONFIDENCE_MATRIX[costMissing][costWaiting];
+
+    // Estimate gate wait time based on confidence level
+    // Higher confidence = earlier arrival = more wait time
+    // This is a rough approximation for preview purposes
+    let estimatedWaitMin = 5;
+    if (confidence >= 0.98) estimatedWaitMin = 25;
+    else if (confidence >= 0.95) estimatedWaitMin = 18;
+    else if (confidence >= 0.90) estimatedWaitMin = 12;
+    else if (confidence >= 0.80) estimatedWaitMin = 8;
+    else if (confidence >= 0.70) estimatedWaitMin = 5;
+    else estimatedWaitMin = 3;
+
+    return {
+      confidence: Math.round(confidence * 100),
+      waitMinutes: estimatedWaitMin,
+    };
+  }, [costMissing, costWaiting]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +94,39 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
           onChange={(val) => setCostWaiting(val as CostLevel)}
           labels={waitingOptions.map(o => o.label)}
         />
+      </div>
+
+      {/* Live Preview */}
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-100 dark:border-blue-800">
+        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 text-center mb-4">
+          With these settings, you'll aim for:
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          {/* Confidence Preview */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
+            <div className="text-center">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confidence</h4>
+              <div className="text-3xl font-bold text-green-600 dark:text-green-500 mb-2">
+                {previewMetrics.confidence}%
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Chance you'll make your flight</p>
+            </div>
+          </div>
+
+          {/* Wait Time Preview */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
+            <div className="text-center">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gate time</h4>
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-500 mb-2">
+                ~{previewMetrics.waitMinutes} min
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Before door closes</p>
+            </div>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
+          Adjust the sliders above to change this tradeoff
+        </p>
       </div>
 
       {/* Continue Button */}
