@@ -9,7 +9,7 @@ interface CostDialsFormProps {
   onBack: () => void;
 }
 
-export default function CostDialsForm({ onComplete, onBack }: CostDialsFormProps) {
+export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
   const [costMissing, setCostMissing] = useState<CostLevel>(3);
   const [costWaiting, setCostWaiting] = useState<CostLevel>(3);
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import AirportAutocomplete from './AirportAutocomplete';
-import type { TripContext, Airport, FlightType } from '../lib/types';
+import type { TripContext, Airport } from '../lib/types';
 import { Plane } from 'lucide-react';
 import SecuritySelector from './SecuritySelector';
 import BagCheckSelector from './BagCheckSelector';

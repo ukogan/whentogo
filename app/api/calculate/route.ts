@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
       travelTimeMinutes,
       travelTimeStdDevMinutes = travelTimeMinutes * 0.3, // Default: 30% coefficient of variation
       hasCheckedBag = false,
+      hasPriorityBagCheck = false,
       hasPreCheck = false,
       hasClear = false,
       boardingStartMin = 30,
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
       flightTime: new Date(flightTime),
       flightType: isDomestic ? 'domestic' : 'international',
       hasCheckedBag,
+      hasPriorityBagCheck,
       hasPreCheck,
       hasClear,
       boardingStartMin,
