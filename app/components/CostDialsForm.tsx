@@ -123,23 +123,20 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
       </div>
 
       {/* Live Preview */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-100 dark:border-blue-800">
-        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 text-center mb-4">
-          With these settings, you&apos;ll aim for:
-        </h3>
-        <div className="grid grid-cols-2 gap-4">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800">
+        <div className="grid grid-cols-2 gap-3">
           {/* Confidence Preview */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
             <div className="text-center">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">You&apos;ll make it</h4>
-              <div className="text-lg font-bold text-green-600 dark:text-green-500 mb-3">
+              <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">You&apos;ll make it</h4>
+              <div className="text-sm font-bold text-green-600 dark:text-green-500 mb-2">
                 {previewMetrics.outOfText}
               </div>
               {/* Airplane icon filled to percentage */}
-              <div className="relative h-16 flex items-center justify-center">
+              <div className="relative h-10 flex items-center justify-center">
                 <svg
                   viewBox="0 0 24 24"
-                  className="w-24 h-24"
+                  className="w-16 h-16"
                   style={{ transform: 'rotate(45deg)' }}
                 >
                   {/* Background airplane (gray) */}
@@ -160,20 +157,20 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
                   />
                 </svg>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">times</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">times</p>
             </div>
           </div>
 
           {/* Wait Time Preview */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gate time before door closes</h4>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+            <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Gate time before door closes</h4>
 
-            <div className="text-3xl font-bold text-blue-600 dark:text-blue-500 mb-3">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-500 mb-2">
               ~{previewMetrics.waitMinutes} min
             </div>
 
             {/* Coffee Cup Icons */}
-            <div className="flex gap-1 mb-3">
+            <div className="flex gap-1 mb-2">
               {Array.from({ length: 5 }).map((_, i) => {
                 const threshold = i * 15; // 0, 15, 30, 45, 60 minutes
                 const isFilled = previewMetrics.waitMinutes > threshold;
@@ -181,7 +178,7 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
                 return (
                   <div
                     key={i}
-                    className={`w-4 h-5 rounded-sm transition-colors ${
+                    className={`w-3 h-4 rounded-sm transition-colors ${
                       isFilled ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                   />
@@ -190,7 +187,7 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
             </div>
 
             {/* Boarding Status */}
-            <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
               {previewMetrics.arriveBeforeBoardingStarts ? (
                 <p className="text-xs text-green-600 dark:text-green-500 font-medium">
                   ✓ Arrive {previewMetrics.boardingMinutes} min before boarding starts
@@ -203,7 +200,7 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
             </div>
           </div>
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
+        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">
           Adjust the sliders above to change this tradeoff
         </p>
       </div>
