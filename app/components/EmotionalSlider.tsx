@@ -105,18 +105,6 @@ export default function EmotionalSlider({ value, onChange, labels }: EmotionalSl
         })}
       </div>
 
-      {/* Label centered below icons */}
-      <div className="flex justify-center min-h-[48px] pt-2">
-        <p className={`text-sm font-medium transition-all duration-200 ${
-          displayValue === 1 ? 'text-green-700' :
-          displayValue === 2 ? 'text-blue-600' :
-          displayValue === 3 ? 'text-yellow-700' :
-          displayValue === 4 ? 'text-orange-700' :
-          'text-red-700'
-        }`}>
-          {labels[displayValue - 1]}
-        </p>
-      </div>
     </div>
   );
 }
