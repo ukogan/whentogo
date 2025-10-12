@@ -203,7 +203,7 @@ export default function Home() {
       {/* Section 1: Intro */}
       <section
         id="intro"
-        className="min-h-screen snap-start flex items-center justify-center px-4 pt-20 pb-8"
+        className="min-h-screen snap-start flex items-center justify-center px-4 pt-32 pb-8"
       >
         <div className="max-w-2xl w-full">
           <div className="bg-white rounded-2xl shadow-sm p-8 sm:p-12 space-y-6">
@@ -269,7 +269,7 @@ export default function Home() {
       {/* Section 2: Cost Preferences */}
       <section
         id="costs"
-        className="min-h-screen snap-start flex items-center justify-center px-4 py-8"
+        className="min-h-screen snap-start flex items-center justify-center px-4 pt-32 pb-8"
       >
         <div className="max-w-2xl w-full">
           <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8">
@@ -284,7 +284,7 @@ export default function Home() {
       {/* Section 3: Flight Info */}
       <section
         id="flight"
-        className="min-h-screen snap-start flex items-center justify-center px-4 py-8"
+        className="min-h-screen snap-start flex items-center justify-center px-4 pt-32 pb-8"
       >
         <div className="max-w-2xl w-full">
           <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8">
@@ -299,7 +299,7 @@ export default function Home() {
       {/* Section 4: Travel Mode */}
       <section
         id="travel"
-        className="min-h-screen snap-start flex items-center justify-center px-4 py-8"
+        className="min-h-screen snap-start flex items-center justify-center px-4 pt-32 pb-8"
       >
         <div className="max-w-2xl w-full">
           {error && (
@@ -321,7 +321,7 @@ export default function Home() {
       {/* Section 5: Results */}
       <section
         id="results"
-        className="min-h-screen snap-start flex items-center justify-center px-4 py-8"
+        className="min-h-screen snap-start flex items-center justify-center px-4 pt-32 pb-8"
       >
         <div className="max-w-2xl w-full">
           <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8">
