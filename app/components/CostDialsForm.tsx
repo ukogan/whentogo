@@ -125,13 +125,13 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
       {/* Live Preview */}
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-100 dark:border-blue-800">
         <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 text-center mb-4">
-          With these settings, you'll aim for:
+          With these settings, you&apos;ll aim for:
         </h3>
         <div className="grid grid-cols-2 gap-4">
           {/* Confidence Preview */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
             <div className="text-center">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">You'll make it</h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">You&apos;ll make it</h4>
               <div className="text-lg font-bold text-green-600 dark:text-green-500 mb-3">
                 {previewMetrics.outOfText}
               </div>
