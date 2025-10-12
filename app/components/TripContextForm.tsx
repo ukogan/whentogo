@@ -155,7 +155,7 @@ export default function TripContextForm({ onComplete, onPartialUpdate }: TripCon
                        : 'bg-gray-300 cursor-not-allowed'
                    }`}
       >
-        Next: Add travel to airport
+        Next: travel to airport
       </button>
     </form>
   );

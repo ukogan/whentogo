@@ -188,8 +188,6 @@ export default function TradeoffVisualization({
         className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100"
       >
         <div className="text-center space-y-4">
-          <h2 className="text-2xl font-bold text-gray-900">Your Personalized Window</h2>
-
           {/* Time Range */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <div className="text-sm font-medium text-gray-600 mb-2">Leave between</div>
@@ -202,7 +200,6 @@ export default function TradeoffVisualization({
                 {formatTime(recommendedRange.latest)}
               </div>
             </div>
-            <div className="text-sm text-gray-500 mt-2">{formatDate(optimalLeaveTime)}</div>
             <div className="text-sm font-medium text-gray-700 mt-3">
               for {formatTime(simulationInputs.tripContext.flightTime)} flight
             </div>
@@ -210,7 +207,8 @@ export default function TradeoffVisualization({
 
           {/* Explanation */}
           <p className="text-base text-gray-700 leading-relaxed">
-            <span className="font-medium">Earlier</span> = more peace of mind.{' '}
+            <span className="font-medium">Earlier</span> = more peace of mind.
+            <br />
             <span className="font-medium">Later</span> = more time at home.
           </p>
         </div>
@@ -226,7 +224,6 @@ export default function TradeoffVisualization({
           className="bg-white rounded-xl p-6 border border-gray-200"
         >
           <div className="flex items-center gap-2 mb-3">
-            <Plane className="h-5 w-5 text-green-500" />
             <h3 className="font-semibold text-gray-900">Confidence</h3>
           </div>
 
@@ -269,8 +266,7 @@ export default function TradeoffVisualization({
           className="bg-white rounded-xl p-6 border border-gray-200"
         >
           <div className="flex items-center gap-2 mb-3">
-            <Clock className="h-5 w-5 text-blue-500" />
-            <h3 className="font-semibold text-gray-900">Wait Time Before Door Closes</h3>
+            <h3 className="font-semibold text-gray-900">Gate time before door closes</h3>
           </div>
 
           <div className="text-3xl font-bold text-blue-600 mb-3">~{waitMinutes} min</div>

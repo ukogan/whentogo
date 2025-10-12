@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Option 5: Split Clock Face with Visual Zones</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #2d3748;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #718096;
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .flight-type-tabs {
+            display: flex;
+            margin-bottom: 32px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 16px;
+            background: none;
+            border: none;
+            color: #718096;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-icon {
+            margin-right: 8px;
+        }
+
+        .departure-setter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 12px;
+        }
+
+        .departure-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .time-input {
+            padding: 10px 16px;
+            font-size: 18px;
+            font-weight: 600;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            color: #2d3748;
+            width: 140px;
+            transition: all 0.2s ease;
+        }
+
+        .time-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .split-clock-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .clock-section {
+            position: relative;
+            aspect-ratio: 1;
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clock-face-split {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            border-radius: 50%;
+            background: white;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .zone-indicator {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .boarding-zone {
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                transparent 240deg,
+                rgba(72, 187, 120, 0.3) 240deg,
+                rgba(72, 187, 120, 0.3) 360deg
+            );
+        }
+
+        .door-zone {
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                transparent 330deg,
+                rgba(246, 173, 85, 0.4) 330deg,
+                rgba(246, 173, 85, 0.4) 360deg
+            );
+        }
+
+        .clock-hand {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            transform: translateX(-50%);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hour-hand {
+            width: 4px;
+            height: 60px;
+            background: #2d3748;
+            margin-top: -60px;
+            border-radius: 2px;
+        }
+
+        .minute-hand {
+            width: 3px;
+            height: 80px;
+            background: #4a5568;
+            margin-top: -80px;
+            border-radius: 2px;
+        }
+
+        .clock-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .clock-numbers {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .clock-number {
+            position: absolute;
+            font-size: 14px;
+            font-weight: 500;
+            color: #4a5568;
+            transform: translate(-50%, -50%);
+        }
+
+        .section-label {
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .section-time {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .boarding-section .section-time {
+            color: #48bb78;
+        }
+
+        .door-section .section-time {
+            color: #f6ad55;
+        }
+
+        .time-adjusters {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .adjuster {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .adjuster-label {
+            font-size: 13px;
+            color: #718096;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .adjuster-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .adjuster-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #4a5568;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .adjuster-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: scale(1.1);
+        }
+
+        .adjuster-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3748;
+            min-width: 70px;
+        }
+
+        .visual-timeline {
+            background: #f7fafc;
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+
+        .timeline-header {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .timeline-bar {
+            height: 40px;
+            background: linear-gradient(to right,
+                #48bb78 0%,
+                #48bb78 33%,
+                #68d391 33%,
+                #68d391 66%,
+                #f6ad55 66%,
+                #f6ad55 85%,
+                #e53e3e 85%,
+                #e53e3e 100%);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-markers {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            padding: 0 10px;
+        }
+
+        .timeline-marker-item {
+            font-size: 11px;
+            color: #4a5568;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .info-card {
+            padding: 12px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .info-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .info-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .info-title {
+            font-size: 11px;
+            color: #718096;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dual Clock Boarding View</h1>
+        <p class="subtitle">See your boarding timeline at a glance</p>
+
+        <div class="flight-type-tabs">
+            <button class="tab active" onclick="setFlightType('domestic')">
+                <span class="tab-icon">✈️</span>Domestic Flight
+            </button>
+            <button class="tab" onclick="setFlightType('international')">
+                <span class="tab-icon">🌍</span>International Flight
+            </button>
+        </div>
+
+        <div class="departure-setter">
+            <label class="departure-label">Your flight departs at:</label>
+            <input type="time" class="time-input" id="departureTime" value="14:30">
+        </div>
+
+        <div class="split-clock-container">
+            <div class="clock-section boarding-section">
+                <div class="clock-face-split">
+                    <div class="zone-indicator boarding-zone" id="boardingZone"></div>
+                    <div class="clock-numbers">
+                        <div class="clock-number" style="top: 15%; left: 50%;">12</div>
+                        <div class="clock-number" style="top: 50%; right: 15%;">3</div>
+                        <div class="clock-number" style="bottom: 15%; left: 50%;">6</div>
+                        <div class="clock-number" style="top: 50%; left: 15%;">9</div>
+                    </div>
+                    <div class="clock-hand hour-hand" id="boardingHour"></div>
+                    <div class="clock-hand minute-hand" id="boardingMinute"></div>
+                    <div class="clock-center"></div>
+                </div>
+                <div class="section-label">Boarding Starts</div>
+                <div class="section-time" id="boardingTimeDisplay">2:00 PM</div>
+            </div>
+
+            <div class="clock-section door-section">
+                <div class="clock-face-split">
+                    <div class="zone-indicator door-zone" id="doorZone"></div>
+                    <div class="clock-numbers">
+                        <div class="clock-number" style="top: 15%; left: 50%;">12</div>
+                        <div class="clock-number" style="top: 50%; right: 15%;">3</div>
+                        <div class="clock-number" style="bottom: 15%; left: 50%;">6</div>
+                        <div class="clock-number" style="top: 50%; left: 15%;">9</div>
+                    </div>
+                    <div class="clock-hand hour-hand" id="doorHour"></div>
+                    <div class="clock-hand minute-hand" id="doorMinute"></div>
+                    <div class="clock-center"></div>
+                </div>
+                <div class="section-label">Doors Close</div>
+                <div class="section-time" id="doorTimeDisplay">2:20 PM</div>
+            </div>
+        </div>
+
+        <div class="time-adjusters">
+            <div class="adjuster">
+                <div class="adjuster-label">Boarding Window</div>
+                <div class="adjuster-controls">
+                    <button class="adjuster-btn" onclick="adjustTime('boarding', -5)">−</button>
+                    <span class="adjuster-value" id="boardingMinutes">30 min</span>
+                    <button class="adjuster-btn" onclick="adjustTime('boarding', 5)">+</button>
+                </div>
+            </div>
+            <div class="adjuster">
+                <div class="adjuster-label">Door Closure</div>
+                <div class="adjuster-controls">
+                    <button class="adjuster-btn" onclick="adjustTime('door', -5)">−</button>
+                    <span class="adjuster-value" id="doorMinutes">10 min</span>
+                    <button class="adjuster-btn" onclick="adjustTime('door', 5)">+</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="visual-timeline">
+            <div class="timeline-header">Your Boarding Timeline</div>
+            <div class="timeline-bar" id="timelineBar"></div>
+            <div class="timeline-markers">
+                <div class="timeline-marker-item" id="boardingMarker">Board<br>2:00 PM</div>
+                <div class="timeline-marker-item">Check-in</div>
+                <div class="timeline-marker-item" id="doorMarker">Doors<br>2:20 PM</div>
+                <div class="timeline-marker-item" id="departureMarker">Depart<br>2:30 PM</div>
+            </div>
+        </div>
+
+        <div class="info-cards">
+            <div class="info-card">
+                <div class="info-icon">🏃</div>
+                <div class="info-title">Arrive By</div>
+                <div class="info-value" id="arriveBy">1:50 PM</div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">⏱️</div>
+                <div class="info-title">Total Time</div>
+                <div class="info-value" id="totalTime">40 min</div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">✅</div>
+                <div class="info-title">Buffer Time</div>
+                <div class="info-value" id="bufferTime">10 min</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let flightType = 'domestic';
+        let boardingMin = 30;
+        let doorMin = 10;
+
+        const presets = {
+            domestic: { boarding: 30, door: 10 },
+            international: { boarding: 45, door: 15 }
+        };
+
+        function setFlightType(type) {
+            flightType = type;
+            boardingMin = presets[type].boarding;
+            doorMin = presets[type].door;
+
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            updateDisplay();
+        }
+
+        function adjustTime(type, delta) {
+            if (type === 'boarding') {
+                boardingMin = Math.max(15, Math.min(90, boardingMin + delta));
+                if (boardingMin <= doorMin) boardingMin = doorMin + 5;
+            } else {
+                doorMin = Math.max(5, Math.min(45, doorMin + delta));
+                if (doorMin >= boardingMin) doorMin = boardingMin - 5;
+            }
+            updateDisplay();
+        }
+
+        function setClockHands(prefix, hours, minutes) {
+            const hourAngle = (hours % 12) * 30 + (minutes * 0.5);
+            const minuteAngle = minutes * 6;
+
+            document.getElementById(prefix + 'Hour').style.transform =
+                `translateX(-50%) rotate(${hourAngle}deg)`;
+            document.getElementById(prefix + 'Minute').style.transform =
+                `translateX(-50%) rotate(${minuteAngle}deg)`;
+        }
+
+        function updateZones() {
+            // Update boarding zone visualization
+            const boardingAngle = (boardingMin / 60) * 360;
+            const doorAngle = (doorMin / 60) * 360;
+
+            document.getElementById('boardingZone').style.background =
+                `conic-gradient(from 0deg, transparent 0deg, transparent ${360 - boardingAngle}deg,
+                rgba(72, 187, 120, 0.3) ${360 - boardingAngle}deg, rgba(72, 187, 120, 0.3) 360deg)`;
+
+            document.getElementById('doorZone').style.background =
+                `conic-gradient(from 0deg, transparent 0deg, transparent ${360 - doorAngle}deg,
+                rgba(246, 173, 85, 0.4) ${360 - doorAngle}deg, rgba(246, 173, 85, 0.4) 360deg)`;
+        }
+
+        function updateTimeline() {
+            const totalMin = boardingMin + 10; // Add 10 min buffer before boarding
+            const boardingPercent = (10 / totalMin) * 100;
+            const doorPercent = ((boardingMin - doorMin + 10) / totalMin) * 100;
+            const departurePercent = ((boardingMin + 10) / totalMin) * 100;
+
+            const gradient = `linear-gradient(to right,
+                #48bb78 0%,
+                #48bb78 ${boardingPercent}%,
+                #68d391 ${boardingPercent}%,
+                #68d391 ${doorPercent}%,
+                #f6ad55 ${doorPercent}%,
+                #f6ad55 ${departurePercent}%,
+                #e53e3e ${departurePercent}%,
+                #e53e3e 100%)`;
+
+            document.getElementById('timelineBar').style.background = gradient;
+        }
+
+        document.getElementById('departureTime').addEventListener('change', updateDisplay);
+
+        function updateDisplay() {
+            // Update minute displays
+            document.getElementById('boardingMinutes').textContent = `${boardingMin} min`;
+            document.getElementById('doorMinutes').textContent = `${doorMin} min`;
+
+            // Get departure time
+            const departureInput = document.getElementById('departureTime').value;
+            if (!departureInput) return;
+
+            const [hours, minutes] = departureInput.split(':').map(Number);
+            const departureDate = new Date();
+            departureDate.setHours(hours, minutes, 0);
+
+            // Calculate times
+            const boardingDate = new Date(departureDate.getTime() - boardingMin * 60000);
+            const doorDate = new Date(departureDate.getTime() - doorMin * 60000);
+            const arriveDate = new Date(departureDate.getTime() - (boardingMin + 10) * 60000);
+
+            // Format time
+            const formatTime = (date) => {
+                return date.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            };
+
+            // Update displays
+            document.getElementById('boardingTimeDisplay').textContent = formatTime(boardingDate);
+            document.getElementById('doorTimeDisplay').textContent = formatTime(doorDate);
+            document.getElementById('boardingMarker').innerHTML = `Board<br>${formatTime(boardingDate)}`;
+            document.getElementById('doorMarker').innerHTML = `Doors<br>${formatTime(doorDate)}`;
+            document.getElementById('departureMarker').innerHTML = `Depart<br>${formatTime(departureDate)}`;
+            document.getElementById('arriveBy').textContent = formatTime(arriveDate);
+            document.getElementById('totalTime').textContent = `${boardingMin + 10} min`;
+            document.getElementById('bufferTime').textContent = `${boardingMin - doorMin} min`;
+
+            // Update clock hands
+            setClockHands('boarding', boardingDate.getHours(), boardingDate.getMinutes());
+            setClockHands('door', doorDate.getHours(), doorDate.getMinutes());
+
+            // Update visual zones
+            updateZones();
+            updateTimeline();
+        }
+
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>

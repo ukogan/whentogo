@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Option 2: Linear Timeline Clock</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #2d3748;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #718096;
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .flight-type-selector {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 32px;
+        }
+
+        .flight-option {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .flight-option:hover {
+            transform: translateY(-2px);
+        }
+
+        .flight-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .flight-card {
+            padding: 16px 24px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .flight-option input[type="radio"]:checked + .flight-card {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .flight-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .flight-label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .departure-input-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .departure-input-label {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .time-input-wrapper {
+            display: inline-block;
+            position: relative;
+        }
+
+        .time-input {
+            padding: 14px 20px;
+            font-size: 24px;
+            font-weight: 600;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            text-align: center;
+            color: #2d3748;
+            width: 180px;
+            transition: all 0.2s ease;
+        }
+
+        .time-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .timeline-container {
+            position: relative;
+            margin: 0 auto 40px;
+            height: 200px;
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 40px 20px 20px;
+            overflow: hidden;
+        }
+
+        .timeline-track {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            right: 20px;
+            height: 60px;
+            background: linear-gradient(to right,
+                #48bb78 0%,
+                #48bb78 30%,
+                #f6ad55 30%,
+                #f6ad55 70%,
+                #e2e8f0 70%,
+                #e2e8f0 100%);
+            border-radius: 30px;
+            transition: all 0.4s ease;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            width: 2px;
+            height: 80px;
+            top: 50px;
+            transition: all 0.4s ease;
+        }
+
+        .boarding-start-marker {
+            background: #276749;
+            left: 20px;
+        }
+
+        .door-close-marker {
+            background: #c05621;
+            left: 50%;
+        }
+
+        .departure-marker {
+            background: #c53030;
+            width: 3px;
+            right: 20px;
+        }
+
+        .timeline-label {
+            position: absolute;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.4s ease;
+        }
+
+        .boarding-label {
+            top: 20px;
+            left: 20px;
+            background: #48bb78;
+            color: white;
+        }
+
+        .door-label {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f6ad55;
+            color: white;
+        }
+
+        .departure-label {
+            top: 20px;
+            right: 20px;
+            background: #e53e3e;
+            color: white;
+        }
+
+        .time-display {
+            position: absolute;
+            bottom: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .boarding-time {
+            left: 20px;
+        }
+
+        .door-time {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .departure-time {
+            right: 20px;
+        }
+
+        .clock-visual {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .clock-item {
+            text-align: center;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .mini-clock {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 12px;
+            position: relative;
+            background: white;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+        }
+
+        .clock-hand {
+            position: absolute;
+            background: #4a5568;
+            transform-origin: bottom;
+            left: 50%;
+            bottom: 50%;
+            transform: translateX(-50%);
+        }
+
+        .hour-hand {
+            width: 3px;
+            height: 25px;
+        }
+
+        .minute-hand {
+            width: 2px;
+            height: 35px;
+        }
+
+        .clock-center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background: #2d3748;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .clock-label {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 4px;
+        }
+
+        .clock-time {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .adjustment-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .control-card {
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-info {
+            flex: 1;
+        }
+
+        .control-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .control-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .adjust-btn {
+            width: 32px;
+            height: 24px;
+            border: none;
+            background: white;
+            color: #4a5568;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .adjust-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .info-message {
+            text-align: center;
+            padding: 12px;
+            background: #edf2f7;
+            border-radius: 8px;
+            color: #4a5568;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Flight Boarding Schedule</h1>
+        <p class="subtitle">Set your boarding preferences visually</p>
+
+        <div class="flight-type-selector">
+            <label class="flight-option">
+                <input type="radio" name="flightType" value="domestic" checked>
+                <div class="flight-card">
+                    <div class="flight-icon">✈️</div>
+                    <div class="flight-label">Domestic</div>
+                </div>
+            </label>
+            <label class="flight-option">
+                <input type="radio" name="flightType" value="international">
+                <div class="flight-card">
+                    <div class="flight-icon">🌍</div>
+                    <div class="flight-label">International</div>
+                </div>
+            </label>
+        </div>
+
+        <div class="departure-input-section">
+            <div class="departure-input-label">Departure Time</div>
+            <div class="time-input-wrapper">
+                <input type="time" class="time-input" id="departureTime" value="14:30">
+            </div>
+        </div>
+
+        <div class="timeline-container">
+            <div class="timeline-track" id="timelineTrack"></div>
+            <div class="timeline-marker boarding-start-marker"></div>
+            <div class="timeline-marker door-close-marker"></div>
+            <div class="timeline-marker departure-marker"></div>
+
+            <div class="timeline-label boarding-label">Boarding Opens</div>
+            <div class="timeline-label door-label">Doors Close</div>
+            <div class="timeline-label departure-label">Departure</div>
+
+            <div class="time-display boarding-time" id="boardingTimeDisplay">2:00 PM</div>
+            <div class="time-display door-time" id="doorTimeDisplay">2:20 PM</div>
+            <div class="time-display departure-time" id="departureTimeDisplay">2:30 PM</div>
+        </div>
+
+        <div class="clock-visual">
+            <div class="clock-item">
+                <div class="mini-clock">
+                    <div class="clock-hand hour-hand" id="boardingHourHand"></div>
+                    <div class="clock-hand minute-hand" id="boardingMinuteHand"></div>
+                    <div class="clock-center-dot"></div>
+                </div>
+                <div class="clock-label">Boarding Starts</div>
+                <div class="clock-time" id="boardingClockTime">2:00 PM</div>
+            </div>
+
+            <div class="clock-item">
+                <div class="mini-clock">
+                    <div class="clock-hand hour-hand" id="doorHourHand"></div>
+                    <div class="clock-hand minute-hand" id="doorMinuteHand"></div>
+                    <div class="clock-center-dot"></div>
+                </div>
+                <div class="clock-label">Doors Close</div>
+                <div class="clock-time" id="doorClockTime">2:20 PM</div>
+            </div>
+
+            <div class="clock-item">
+                <div class="mini-clock">
+                    <div class="clock-hand hour-hand" id="departureHourHand"></div>
+                    <div class="clock-hand minute-hand" id="departureMinuteHand"></div>
+                    <div class="clock-center-dot"></div>
+                </div>
+                <div class="clock-label">Departure</div>
+                <div class="clock-time" id="departureClockTime">2:30 PM</div>
+            </div>
+        </div>
+
+        <div class="adjustment-controls">
+            <div class="control-card">
+                <div class="control-info">
+                    <div class="control-title">Boarding Window</div>
+                    <div class="control-value" id="boardingValue">30 min</div>
+                </div>
+                <div class="control-buttons">
+                    <button class="adjust-btn" onclick="adjustBoardingTime(5)">+</button>
+                    <button class="adjust-btn" onclick="adjustBoardingTime(-5)">−</button>
+                </div>
+            </div>
+
+            <div class="control-card">
+                <div class="control-info">
+                    <div class="control-title">Door Closure</div>
+                    <div class="control-value" id="doorValue">10 min</div>
+                </div>
+                <div class="control-buttons">
+                    <button class="adjust-btn" onclick="adjustDoorTime(5)">+</button>
+                    <button class="adjust-btn" onclick="adjustDoorTime(-5)">−</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-message">
+            💡 Tip: Arrive at the gate 5-10 minutes before boarding starts
+        </div>
+    </div>
+
+    <script>
+        let boardingMinutes = 30;
+        let doorMinutes = 10;
+
+        const flightDefaults = {
+            domestic: { boarding: 30, door: 10 },
+            international: { boarding: 45, door: 15 }
+        };
+
+        document.querySelectorAll('input[name="flightType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const type = this.value;
+                boardingMinutes = flightDefaults[type].boarding;
+                doorMinutes = flightDefaults[type].door;
+                updateDisplay();
+            });
+        });
+
+        document.getElementById('departureTime').addEventListener('change', updateDisplay);
+
+        function adjustBoardingTime(delta) {
+            boardingMinutes = Math.max(15, Math.min(90, boardingMinutes + delta));
+            updateDisplay();
+        }
+
+        function adjustDoorTime(delta) {
+            doorMinutes = Math.max(5, Math.min(30, doorMinutes + delta));
+            updateDisplay();
+        }
+
+        function setClockHands(elementPrefix, hours, minutes) {
+            const hourAngle = (hours % 12) * 30 + (minutes * 0.5);
+            const minuteAngle = minutes * 6;
+
+            document.getElementById(elementPrefix + 'HourHand').style.transform =
+                `translateX(-50%) rotate(${hourAngle}deg)`;
+            document.getElementById(elementPrefix + 'MinuteHand').style.transform =
+                `translateX(-50%) rotate(${minuteAngle}deg)`;
+        }
+
+        function updateDisplay() {
+            // Update control values
+            document.getElementById('boardingValue').textContent = `${boardingMinutes} min`;
+            document.getElementById('doorValue').textContent = `${doorMinutes} min`;
+
+            // Get departure time
+            const departureInput = document.getElementById('departureTime').value;
+            const [hours, minutes] = departureInput.split(':').map(Number);
+
+            // Calculate times
+            const departureDate = new Date();
+            departureDate.setHours(hours, minutes, 0);
+
+            const boardingDate = new Date(departureDate.getTime() - boardingMinutes * 60000);
+            const doorDate = new Date(departureDate.getTime() - doorMinutes * 60000);
+
+            // Format times
+            const formatTime = (date) => {
+                return date.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            };
+
+            // Update time displays
+            const boardingTimeStr = formatTime(boardingDate);
+            const doorTimeStr = formatTime(doorDate);
+            const departureTimeStr = formatTime(departureDate);
+
+            document.getElementById('boardingTimeDisplay').textContent = boardingTimeStr;
+            document.getElementById('doorTimeDisplay').textContent = doorTimeStr;
+            document.getElementById('departureTimeDisplay').textContent = departureTimeStr;
+
+            document.getElementById('boardingClockTime').textContent = boardingTimeStr;
+            document.getElementById('doorClockTime').textContent = doorTimeStr;
+            document.getElementById('departureClockTime').textContent = departureTimeStr;
+
+            // Update clock hands
+            setClockHands('boarding', boardingDate.getHours(), boardingDate.getMinutes());
+            setClockHands('door', doorDate.getHours(), doorDate.getMinutes());
+            setClockHands('departure', hours, minutes);
+
+            // Update timeline visualization
+            const totalMinutes = boardingMinutes;
+            const boardingPercentage = (boardingMinutes - doorMinutes) / boardingMinutes * 70;
+            const doorPercentage = 70;
+
+            const track = document.getElementById('timelineTrack');
+            track.style.background = `linear-gradient(to right,
+                #48bb78 0%,
+                #48bb78 ${boardingPercentage}%,
+                #f6ad55 ${boardingPercentage}%,
+                #f6ad55 ${doorPercentage}%,
+                #e2e8f0 ${doorPercentage}%,
+                #e2e8f0 100%)`;
+
+            // Update marker positions
+            document.querySelector('.door-close-marker').style.left = `${doorPercentage}%`;
+        }
+
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Wait Time - Variation 5: Radial Gauge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gauge-container {
+            position: relative;
+            width: 200px;
+            height: 100px;
+            margin: 20px auto;
+        }
+
+        .gauge-arc {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            top: 0;
+            left: 0;
+        }
+
+        .gauge-background {
+            fill: none;
+            stroke: #e2e8f0;
+            stroke-width: 20;
+        }
+
+        .gauge-fill {
+            fill: none;
+            stroke-width: 20;
+            stroke-linecap: round;
+            transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 4px 6px rgba(59, 130, 246, 0.1));
+        }
+
+        .gauge-fill.regular {
+            stroke: url(#gradient-regular);
+            stroke-dasharray: 157 157;
+            stroke-dashoffset: 0;
+        }
+
+        .gauge-fill.fast {
+            stroke: url(#gradient-fast);
+            stroke-dasharray: 100 157;
+            stroke-dashoffset: 0;
+        }
+
+        .gauge-fill.skip {
+            stroke: url(#gradient-skip);
+            stroke-dasharray: 60 157;
+            stroke-dashoffset: 0;
+        }
+
+        .gauge-needle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 3px;
+            height: 90px;
+            background: #1e293b;
+            transform-origin: bottom center;
+            transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 3px 3px 0 0;
+            box-shadow: 0 0 4px rgba(0,0,0,0.2);
+        }
+
+        .gauge-needle::before {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: #1e293b;
+            border-radius: 50%;
+        }
+
+        .gauge-needle::after {
+            content: '▲';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #1e293b;
+        }
+
+        .gauge-needle.regular {
+            transform: translateX(-50%) rotate(-20deg);
+        }
+
+        .gauge-needle.fast {
+            transform: translateX(-50%) rotate(-55deg);
+        }
+
+        .gauge-needle.skip {
+            transform: translateX(-50%) rotate(-70deg);
+        }
+
+        .time-display-center {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .time-main {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1e293b;
+            line-height: 1;
+            transition: all 300ms;
+        }
+
+        .time-sub {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .option-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .option-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            background: #f8fafc;
+            color: #64748b;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 200ms;
+            position: relative;
+        }
+
+        .option-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .option-btn.active::after {
+            content: '✓';
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            font-size: 10px;
+        }
+
+        .gauge-labels {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .gauge-label {
+            position: absolute;
+            font-size: 10px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .gauge-label.min {
+            bottom: -5px;
+            left: 5px;
+        }
+
+        .gauge-label.max {
+            bottom: -5px;
+            right: 5px;
+        }
+
+        .gauge-zones {
+            position: absolute;
+            width: 200px;
+            height: 100px;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .zone-marker {
+            position: absolute;
+            font-size: 9px;
+            color: #cbd5e1;
+            font-weight: 600;
+            transition: all 400ms;
+        }
+
+        .zone-marker.fast-zone {
+            bottom: 55px;
+            left: 20px;
+            color: #10b981;
+        }
+
+        .zone-marker.mid-zone {
+            bottom: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #3b82f6;
+        }
+
+        .zone-marker.slow-zone {
+            bottom: 55px;
+            right: 20px;
+            color: #f97316;
+        }
+
+        @keyframes pulse-needle {
+            0%, 100% { transform: translateX(-50%) rotate(var(--rotation)) scale(1); }
+            50% { transform: translateX(-50%) rotate(var(--rotation)) scale(1.05); }
+        }
+
+        .gauge-needle.animated {
+            animation: pulse-needle 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 text-center">Security Wait Time</h2>
+
+        <!-- Option buttons -->
+        <div class="option-buttons">
+            <button class="option-btn active" onclick="selectOption('regular', this)">
+                Regular
+            </button>
+            <button class="option-btn" onclick="selectOption('fast', this)">
+                Fast Lane
+            </button>
+            <button class="option-btn" onclick="selectOption('skip', this)">
+                Skip Line
+            </button>
+        </div>
+
+        <!-- Gauge visualization -->
+        <div class="gauge-container">
+            <svg class="gauge-arc" viewBox="0 0 200 200">
+                <!-- Gradient definitions -->
+                <defs>
+                    <linearGradient id="gradient-regular" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#f97316;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="gradient-fast" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                        <stop offset="70%" style="stop-color:#3b82f6;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#f97316;stop-opacity:0.3" />
+                    </linearGradient>
+                    <linearGradient id="gradient-skip" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+
+                <!-- Background arc -->
+                <path d="M 20 100 A 80 80 0 0 1 180 100"
+                      class="gauge-background" />
+
+                <!-- Filled arc -->
+                <path d="M 20 100 A 80 80 0 0 1 180 100"
+                      id="gaugeFill"
+                      class="gauge-fill regular" />
+            </svg>
+
+            <!-- Needle indicator -->
+            <div id="gaugeNeedle" class="gauge-needle regular animated" style="--rotation: -20deg"></div>
+
+            <!-- Zone markers -->
+            <div class="gauge-zones">
+                <div class="zone-marker fast-zone">Fast</div>
+                <div class="zone-marker mid-zone">Average</div>
+                <div class="zone-marker slow-zone">Slow</div>
+            </div>
+
+            <!-- Time labels -->
+            <div class="gauge-labels">
+                <div id="minLabel" class="gauge-label min">5 min</div>
+                <div id="maxLabel" class="gauge-label max">50 min</div>
+            </div>
+
+            <!-- Center time display -->
+            <div class="time-display-center">
+                <div id="mainTime" class="time-main">38</div>
+                <div class="time-sub">minutes</div>
+            </div>
+        </div>
+
+        <div class="mt-4 flex justify-between text-xs text-gray-500 px-4">
+            <span>Range: <span id="rangeText" class="font-semibold text-gray-700">25-50 min</span></span>
+            <span>Variability: <span id="varText" class="font-semibold text-gray-700">High</span></span>
+        </div>
+    </div>
+
+    <script>
+        const options = {
+            regular: {
+                class: 'regular',
+                time: '38',
+                min: '25 min',
+                max: '50 min',
+                range: '25-50 min',
+                variability: 'High',
+                rotation: '-20deg'
+            },
+            fast: {
+                class: 'fast',
+                time: '12',
+                min: '7 min',
+                max: '17 min',
+                range: '7-17 min',
+                variability: 'Medium',
+                rotation: '-55deg'
+            },
+            skip: {
+                class: 'skip',
+                time: '8',
+                min: '5 min',
+                max: '11 min',
+                range: '5-11 min',
+                variability: 'Low',
+                rotation: '-70deg'
+            }
+        };
+
+        function selectOption(option, element) {
+            // Update button states
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            element.classList.add('active');
+
+            const data = options[option];
+
+            // Update gauge fill
+            const gaugeFill = document.getElementById('gaugeFill');
+            gaugeFill.className = 'gauge-fill ' + data.class;
+
+            // Update needle with animation
+            const needle = document.getElementById('gaugeNeedle');
+            needle.classList.remove('animated');
+            needle.className = 'gauge-needle ' + data.class;
+            needle.style.setProperty('--rotation', data.rotation);
+
+            setTimeout(() => {
+                needle.classList.add('animated');
+            }, 400);
+
+            // Update time and labels with fade effect
+            const mainTime = document.getElementById('mainTime');
+            mainTime.style.opacity = '0';
+
+            setTimeout(() => {
+                mainTime.textContent = data.time;
+                document.getElementById('minLabel').textContent = data.min;
+                document.getElementById('maxLabel').textContent = data.max;
+                document.getElementById('rangeText').textContent = data.range;
+                document.getElementById('varText').textContent = data.variability;
+                mainTime.style.opacity = '1';
+            }, 200);
+
+            // Update zone marker visibility
+            const zoneMarkers = document.querySelectorAll('.zone-marker');
+            zoneMarkers.forEach(marker => {
+                marker.style.opacity = option === 'regular' ? '1' : '0.5';
+            });
+
+            if (option === 'skip') {
+                document.querySelector('.slow-zone').style.opacity = '0.2';
+            }
+        }
+    </script>
+</body>
+</html>

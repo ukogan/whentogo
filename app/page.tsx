@@ -223,27 +223,29 @@ export default function Home() {
                   Flight Date
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   <input
                     type="date"
                     value={flightDate}
                     onChange={(e) => setFlightDate(e.target.value)}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full h-12 pl-12 pr-4 text-base bg-white border border-gray-200 rounded-xl
+                    className="w-full h-12 pl-12 pr-4 text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                               border border-gray-200 dark:border-gray-600 rounded-xl
                                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Departure Time
                 </label>
                 <input
                   type="time"
                   value={flightTime}
                   onChange={(e) => setFlightTime(e.target.value)}
-                  className="w-full h-12 px-4 text-base bg-white border border-gray-200 rounded-xl
+                  className="w-full h-12 px-4 text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                             border border-gray-200 dark:border-gray-600 rounded-xl
                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -257,7 +259,7 @@ export default function Home() {
                            hover:bg-blue-600 active:scale-[0.98] transition-all text-lg
                            disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next: Prefer peace of mind or more time at home?
+                Weigh peace of mind vs time at home
               </button>
             </div>
           </div>
@@ -310,6 +312,7 @@ export default function Home() {
               onComplete={handleTravelComplete}
               onBack={() => scrollToSection('flight')}
               onPartialUpdate={handlePartialTravelUpdate}
+              tripContext={tripContext || undefined}
             />
           </div>
         </div>

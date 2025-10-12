@@ -90,28 +90,32 @@ export default function TravelTimeSlider({
       {/* Editable Min/Max Inputs */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Fastest (minutes)</label>
+          <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Fastest (minutes)</label>
           <input
             type="number"
             value={minMinutes}
             onChange={(e) => onMinChange(e.target.value)}
             min="1"
             placeholder="e.g., 20"
-            className="w-full h-12 px-4 text-base bg-white border border-gray-200 rounded-xl
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full h-12 px-4 text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                       border border-gray-200 dark:border-gray-600 rounded-xl
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                       placeholder:text-gray-400 dark:placeholder:text-gray-500"
           />
         </div>
 
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Slowest (minutes)</label>
+          <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Slowest (minutes)</label>
           <input
             type="number"
             value={maxMinutes}
             onChange={(e) => onMaxChange(e.target.value)}
             min="1"
             placeholder="e.g., 45"
-            className="w-full h-12 px-4 text-base bg-white border border-gray-200 rounded-xl
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full h-12 px-4 text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                       border border-gray-200 dark:border-gray-600 rounded-xl
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                       placeholder:text-gray-400 dark:placeholder:text-gray-500"
           />
         </div>
       </div>

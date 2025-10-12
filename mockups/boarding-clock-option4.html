@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Option 4: Pie Chart Clock with Draggable Handles</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            user-select: none;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 550px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #2d3748;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #718096;
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .preset-btn {
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preset-btn:hover {
+            border-color: #cbd5e0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .preset-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+
+        .preset-icon {
+            font-size: 24px;
+        }
+
+        .preset-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 14px;
+        }
+
+        .preset-times {
+            font-size: 11px;
+            color: #718096;
+        }
+
+        .departure-input-wrapper {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .departure-label {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .time-input {
+            padding: 14px 24px;
+            font-size: 22px;
+            font-weight: 600;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            text-align: center;
+            color: #2d3748;
+            width: 180px;
+            transition: all 0.2s ease;
+        }
+
+        .time-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .clock-wrapper {
+            position: relative;
+            width: 360px;
+            height: 360px;
+            margin: 0 auto 40px;
+        }
+
+        .clock-svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .clock-face {
+            fill: #f7fafc;
+            stroke: #e2e8f0;
+            stroke-width: 2;
+        }
+
+        .pie-segment {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .boarding-segment {
+            fill: #48bb78;
+            opacity: 0.4;
+        }
+
+        .door-segment {
+            fill: #f6ad55;
+            opacity: 0.6;
+        }
+
+        .departure-segment {
+            fill: #e53e3e;
+            opacity: 0.3;
+        }
+
+        .pie-segment:hover {
+            opacity: 0.8;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .drag-handle circle {
+            fill: white;
+            stroke-width: 3;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .boarding-handle circle {
+            stroke: #276749;
+        }
+
+        .door-handle circle {
+            stroke: #c05621;
+        }
+
+        .clock-labels {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .time-marker {
+            position: absolute;
+            font-size: 12px;
+            font-weight: 500;
+            color: #4a5568;
+            transform: translate(-50%, -50%);
+        }
+
+        .center-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            min-width: 140px;
+        }
+
+        .center-time {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .center-label {
+            font-size: 11px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .time-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .time-card {
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 12px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .time-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
+        .boarding-card::before {
+            background: #48bb78;
+        }
+
+        .door-card::before {
+            background: #f6ad55;
+        }
+
+        .departure-card::before {
+            background: #e53e3e;
+        }
+
+        .card-time {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .card-label {
+            font-size: 11px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .card-duration {
+            font-size: 13px;
+            color: #4a5568;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .instructions {
+            padding: 16px;
+            background: #edf2f7;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 13px;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        .instructions-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: space-around;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #4a5568;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: #2d3748;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 4px solid #2d3748;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive Boarding Clock</h1>
+        <p class="subtitle">Drag the handles to customize your timing</p>
+
+        <div class="preset-buttons">
+            <button class="preset-btn active" onclick="applyPreset('domestic')">
+                <span class="preset-icon">✈️</span>
+                <span class="preset-title">Domestic</span>
+                <span class="preset-times">Board: 30min • Door: 10min</span>
+            </button>
+            <button class="preset-btn" onclick="applyPreset('international')">
+                <span class="preset-icon">🌍</span>
+                <span class="preset-title">International</span>
+                <span class="preset-times">Board: 45min • Door: 15min</span>
+            </button>
+        </div>
+
+        <div class="departure-input-wrapper">
+            <div class="departure-label">Departure Time</div>
+            <input type="time" class="time-input" id="departureTime" value="14:30">
+        </div>
+
+        <div class="instructions">
+            <div class="instructions-title">🎯 Drag the handles to adjust timing</div>
+            Click and drag the white handles around the clock to set boarding and door closing times
+        </div>
+
+        <div class="clock-wrapper">
+            <svg class="clock-svg" id="clockSvg">
+                <!-- Clock face -->
+                <circle cx="180" cy="180" r="170" class="clock-face" />
+
+                <!-- Pie segments (will be drawn dynamically) -->
+                <g id="pieSegments"></g>
+
+                <!-- Clock tick marks -->
+                <g id="tickMarks"></g>
+
+                <!-- Draggable handles -->
+                <g class="drag-handle boarding-handle" id="boardingHandle">
+                    <circle cx="180" cy="20" r="12" />
+                    <text x="180" y="25" text-anchor="middle" fill="#276749"
+                          font-size="10" font-weight="bold" transform="rotate(90 180 20)">B</text>
+                </g>
+
+                <g class="drag-handle door-handle" id="doorHandle">
+                    <circle cx="180" cy="20" r="12" />
+                    <text x="180" y="25" text-anchor="middle" fill="#c05621"
+                          font-size="10" font-weight="bold" transform="rotate(90 180 20)">D</text>
+                </g>
+            </svg>
+
+            <div class="clock-labels">
+                <div class="time-marker" style="top: 10%; left: 50%;">12</div>
+                <div class="time-marker" style="top: 50%; right: 10%;">3</div>
+                <div class="time-marker" style="bottom: 10%; left: 50%;">6</div>
+                <div class="time-marker" style="top: 50%; left: 10%;">9</div>
+            </div>
+
+            <div class="center-display">
+                <div class="center-time" id="centerTime">2:30 PM</div>
+                <div class="center-label">Departure</div>
+            </div>
+
+            <div class="tooltip" id="tooltip"></div>
+        </div>
+
+        <div class="time-cards">
+            <div class="time-card boarding-card">
+                <div class="card-time" id="boardingTime">2:00 PM</div>
+                <div class="card-label">Boarding</div>
+                <div class="card-duration" id="boardingDuration">30 min before</div>
+            </div>
+            <div class="time-card door-card">
+                <div class="card-time" id="doorTime">2:20 PM</div>
+                <div class="card-label">Doors Close</div>
+                <div class="card-duration" id="doorDuration">10 min before</div>
+            </div>
+            <div class="time-card departure-card">
+                <div class="card-time" id="departureTimeCard">2:30 PM</div>
+                <div class="card-label">Takeoff</div>
+                <div class="card-duration">On time</div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot" style="background: #48bb78;"></div>
+                <span>Boarding Period</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: #f6ad55;"></div>
+                <span>Final Boarding</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot" style="background: #e53e3e;"></div>
+                <span>Post-Door Close</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let boardingMinutes = 30;
+        let doorMinutes = 10;
+        let isDragging = null;
+        let departureAngle = 0;
+
+        const svg = document.getElementById('clockSvg');
+        const boardingHandle = document.getElementById('boardingHandle');
+        const doorHandle = document.getElementById('doorHandle');
+        const tooltip = document.getElementById('tooltip');
+
+        function applyPreset(type) {
+            const presets = {
+                domestic: { boarding: 30, door: 10 },
+                international: { boarding: 45, door: 15 }
+            };
+
+            boardingMinutes = presets[type].boarding;
+            doorMinutes = presets[type].door;
+
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.closest('.preset-btn').classList.add('active');
+
+            updateDisplay();
+        }
+
+        function angleToMinutes(angle) {
+            // Convert angle to minutes (360 degrees = 720 minutes for 12-hour clock)
+            return Math.round((angle / 360) * 720);
+        }
+
+        function minutesToAngle(minutes) {
+            // Convert minutes to angle
+            return (minutes / 720) * 360;
+        }
+
+        function drawPieSegments() {
+            const segments = document.getElementById('pieSegments');
+            segments.innerHTML = '';
+
+            const boardingAngle = minutesToAngle(boardingMinutes);
+            const doorAngle = minutesToAngle(doorMinutes);
+
+            // Helper function to create arc path
+            function createArc(startAngle, endAngle, radius) {
+                const start = polarToCartesian(180, 180, radius, startAngle);
+                const end = polarToCartesian(180, 180, radius, endAngle);
+                const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+                return [
+                    "M", 180, 180,
+                    "L", start.x, start.y,
+                    "A", radius, radius, 0, largeArcFlag, 1, end.x, end.y,
+                    "Z"
+                ].join(" ");
+            }
+
+            function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+                const angleInRadians = angleInDegrees * Math.PI / 180.0;
+                return {
+                    x: centerX + (radius * Math.cos(angleInRadians)),
+                    y: centerY + (radius * Math.sin(angleInRadians))
+                };
+            }
+
+            // Draw segments
+            const boardingPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            boardingPath.setAttribute("d", createArc(-boardingAngle, -doorAngle, 170));
+            boardingPath.classList.add("pie-segment", "boarding-segment");
+            segments.appendChild(boardingPath);
+
+            const doorPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            doorPath.setAttribute("d", createArc(-doorAngle, 0, 170));
+            doorPath.classList.add("pie-segment", "door-segment");
+            segments.appendChild(doorPath);
+
+            const departurePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            departurePath.setAttribute("d", createArc(0, 30, 170));
+            departurePath.classList.add("pie-segment", "departure-segment");
+            segments.appendChild(departurePath);
+        }
+
+        function drawTickMarks() {
+            const tickMarks = document.getElementById('tickMarks');
+            tickMarks.innerHTML = '';
+
+            for (let i = 0; i < 12; i++) {
+                const angle = i * 30;
+                const start = polarToCartesian(180, 180, 160, angle);
+                const end = polarToCartesian(180, 180, 170, angle);
+
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", start.x);
+                line.setAttribute("y1", start.y);
+                line.setAttribute("x2", end.x);
+                line.setAttribute("y2", end.y);
+                line.setAttribute("stroke", "#cbd5e0");
+                line.setAttribute("stroke-width", i % 3 === 0 ? 2 : 1);
+                tickMarks.appendChild(line);
+            }
+        }
+
+        function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+            const angleInRadians = angleInDegrees * Math.PI / 180.0;
+            return {
+                x: centerX + (radius * Math.cos(angleInRadians)),
+                y: centerY + (radius * Math.sin(angleInRadians))
+            };
+        }
+
+        function updateHandlePositions() {
+            const boardingPos = polarToCartesian(180, 180, 170, -minutesToAngle(boardingMinutes));
+            boardingHandle.setAttribute('transform', `translate(${boardingPos.x - 180}, ${boardingPos.y - 20})`);
+
+            const doorPos = polarToCartesian(180, 180, 170, -minutesToAngle(doorMinutes));
+            doorHandle.setAttribute('transform', `translate(${doorPos.x - 180}, ${doorPos.y - 20})`);
+        }
+
+        // Dragging functionality
+        boardingHandle.addEventListener('mousedown', () => startDrag('boarding'));
+        doorHandle.addEventListener('mousedown', () => startDrag('door'));
+
+        function startDrag(type) {
+            isDragging = type;
+            document.addEventListener('mousemove', handleDrag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function handleDrag(e) {
+            if (!isDragging) return;
+
+            const rect = svg.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+            const degrees = (angle * 180 / Math.PI + 90 + 360) % 360;
+            const minutes = angleToMinutes(degrees);
+
+            if (isDragging === 'boarding') {
+                boardingMinutes = Math.max(15, Math.min(90, minutes));
+                if (boardingMinutes <= doorMinutes) {
+                    boardingMinutes = doorMinutes + 5;
+                }
+            } else if (isDragging === 'door') {
+                doorMinutes = Math.max(5, Math.min(boardingMinutes - 5, minutes));
+            }
+
+            showTooltip(e.clientX, e.clientY, `${isDragging === 'boarding' ? boardingMinutes : doorMinutes} min before`);
+            updateDisplay();
+        }
+
+        function stopDrag() {
+            isDragging = null;
+            document.removeEventListener('mousemove', handleDrag);
+            document.removeEventListener('mouseup', stopDrag);
+            hideTooltip();
+        }
+
+        function showTooltip(x, y, text) {
+            tooltip.textContent = text;
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = (y - 40) + 'px';
+            tooltip.classList.add('visible');
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove('visible');
+        }
+
+        document.getElementById('departureTime').addEventListener('change', updateDisplay);
+
+        function updateDisplay() {
+            drawPieSegments();
+            updateHandlePositions();
+
+            const departureInput = document.getElementById('departureTime').value;
+            if (!departureInput) return;
+
+            const [hours, minutes] = departureInput.split(':').map(Number);
+            const departureDate = new Date();
+            departureDate.setHours(hours, minutes, 0);
+
+            const boardingDate = new Date(departureDate.getTime() - boardingMinutes * 60000);
+            const doorDate = new Date(departureDate.getTime() - doorMinutes * 60000);
+
+            const formatTime = (date) => {
+                return date.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            };
+
+            document.getElementById('centerTime').textContent = formatTime(departureDate);
+            document.getElementById('boardingTime').textContent = formatTime(boardingDate);
+            document.getElementById('doorTime').textContent = formatTime(doorDate);
+            document.getElementById('departureTimeCard').textContent = formatTime(departureDate);
+
+            document.getElementById('boardingDuration').textContent = `${boardingMinutes} min before`;
+            document.getElementById('doorDuration').textContent = `${doorMinutes} min before`;
+        }
+
+        // Initialize
+        drawTickMarks();
+        updateDisplay();
+    </script>
+</body>
+</html>

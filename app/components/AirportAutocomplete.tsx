@@ -101,7 +101,7 @@ export default function AirportAutocomplete({
   return (
     <div className="relative w-full">
       <div className="relative">
-        <Plane className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <Plane className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
         <input
           ref={inputRef}
           type="text"
@@ -112,9 +112,10 @@ export default function AirportAutocomplete({
             if (suggestions.length > 0) setIsOpen(true);
           }}
           placeholder="Search airport code or city..."
-          className="w-full h-12 pl-12 pr-4 text-base bg-white border border-gray-200 rounded-xl
+          className="w-full h-12 pl-12 pr-4 text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                     border border-gray-200 dark:border-gray-600 rounded-xl
                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                     placeholder:text-gray-400 transition-all"
+                     placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all"
         />
       </div>
 
@@ -122,8 +123,8 @@ export default function AirportAutocomplete({
       {isOpen && suggestions.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg
-                     overflow-hidden max-h-64 overflow-y-auto"
+          className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600
+                     rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto"
         >
           {suggestions.map((airport, index) => (
             <button

@@ -1,16 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import type { TravelEstimate, TravelMode } from '../lib/types';
-import { Car, Navigation, Train } from 'lucide-react';
+import type { TravelEstimate, TravelMode, TripContext } from '../lib/types';
+import { Car, Navigation, Train, MapPin } from 'lucide-react';
 import TravelTimeSlider from './TravelTimeSlider';
+import { generateMapsUrl } from '../lib/mapsUtils';
 
 interface TravelEstimateFormProps {
   onComplete: (estimate: TravelEstimate) => void;
   onBack: () => void;
+  onPartialUpdate?: (partial: Partial<TravelEstimate>) => void;
+  tripContext?: TripContext;
 }
 
-export default function TravelEstimateForm({ onComplete, onBack }: TravelEstimateFormProps) {
+export default function TravelEstimateForm({ onComplete, onBack, onPartialUpdate, tripContext }: TravelEstimateFormProps) {
   const [mode, setMode] = useState<TravelMode>('rideshare');
   const [minMinutes, setMinMinutes] = useState('25');
   const [maxMinutes, setMaxMinutes] = useState('45');
@@ -69,7 +72,11 @@ export default function TravelEstimateForm({ onComplete, onBack }: TravelEstimat
               <button
                 key={option.value}
                 type="button"
-                onClick={() => setMode(option.value)}
+                onClick={() => {
+                  setMode(option.value);
+                  // Immediately update parent with new mode
+                  onPartialUpdate?.({ mode: option.value });
+                }}
                 className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all
                            ${
                              isSelected
@@ -95,6 +102,24 @@ export default function TravelEstimateForm({ onComplete, onBack }: TravelEstimat
           })}
         </div>
       </div>
+
+      {/* Maps App Button */}
+      {tripContext && (
+        <div className="space-y-2">
+          <a
+            href={generateMapsUrl(tripContext.airport.code, tripContext.airport.name, mode, tripContext)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-blue-500 text-white font-medium hover:bg-blue-600 active:scale-[0.98] transition-all"
+          >
+            <MapPin className="h-5 w-5" />
+            Check Maps for {mode} time
+          </a>
+          <p className="text-sm text-gray-600 text-center">
+            Set arrival to {new Date(tripContext.flightTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+          </p>
+        </div>
+      )}
 
       {/* Travel Time Range */}
       <div>
@@ -127,10 +152,11 @@ export default function TravelEstimateForm({ onComplete, onBack }: TravelEstimat
               value={parkingToTerminalMin}
               onChange={(e) => setParkingToTerminalMin(e.target.value)}
               min="0"
-              className="w-24 h-12 px-4 text-base bg-white border border-gray-200 rounded-xl
+              className="w-24 h-12 px-4 text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                         border border-gray-200 dark:border-gray-600 rounded-xl
                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <span className="text-gray-600">minutes</span>
+            <span className="text-gray-600 dark:text-gray-400">minutes</span>
           </div>
           <p className="mt-2 text-xs text-gray-500">
             Includes parking, shuttle wait, and walk to terminal
@@ -158,7 +184,7 @@ export default function TravelEstimateForm({ onComplete, onBack }: TravelEstimat
                          : 'bg-gray-300 cursor-not-allowed'
                      }`}
         >
-          Continue
+          Next: Get recommendation
         </button>
       </div>
     </form>

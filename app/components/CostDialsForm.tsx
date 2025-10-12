@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { CostPreferences, CostLevel } from '../lib/types';
-import { AlertCircle, Clock } from 'lucide-react';
+import EmotionalSlider from './EmotionalSlider';
 
 interface CostDialsFormProps {
   onComplete: (preferences: CostPreferences) => void;
@@ -41,119 +41,39 @@ export default function CostDialsForm({ onComplete, onBack }: CostDialsFormProps
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-10">
       {/* Missing Flight Dial */}
       <div>
-        <div className="flex items-center gap-3 mb-4">
-          <AlertCircle className="h-6 w-6 text-red-500" />
-          <label className="text-lg font-semibold text-gray-900">
-            Missing the flight would be:
-          </label>
-        </div>
-
-        <div className="space-y-2">
-          {missingOptions.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setCostMissing(option.value)}
-              className={`w-full p-4 text-left rounded-xl border-2 transition-all
-                         ${
-                           costMissing === option.value
-                             ? 'border-red-500 bg-red-50'
-                             : 'border-gray-200 bg-white hover:border-gray-300'
-                         }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0
-                             ${
-                               costMissing === option.value
-                                 ? 'border-red-500 bg-red-500'
-                                 : 'border-gray-300'
-                             }`}
-                >
-                  {costMissing === option.value && (
-                    <div className="w-2 h-2 bg-white rounded-full" />
-                  )}
-                </div>
-                <span
-                  className={`text-base ${
-                    costMissing === option.value ? 'text-red-900 font-medium' : 'text-gray-700'
-                  }`}
-                >
-                  {option.label}
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
+        <label className="block text-lg font-semibold text-gray-900 mb-6 text-center">
+          Missing the flight would be:
+        </label>
+        <EmotionalSlider
+          value={costMissing}
+          onChange={(val) => setCostMissing(val as CostLevel)}
+          labels={missingOptions.map(o => o.label)}
+        />
       </div>
 
       {/* Waiting Time Dial */}
       <div>
-        <div className="flex items-center gap-3 mb-4">
-          <Clock className="h-6 w-6 text-blue-500" />
-          <label className="text-lg font-semibold text-gray-900">
-            Extra time in the airport is:
-          </label>
-        </div>
-
-        <div className="space-y-2">
-          {waitingOptions.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setCostWaiting(option.value)}
-              className={`w-full p-4 text-left rounded-xl border-2 transition-all
-                         ${
-                           costWaiting === option.value
-                             ? 'border-blue-500 bg-blue-50'
-                             : 'border-gray-200 bg-white hover:border-gray-300'
-                         }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0
-                             ${
-                               costWaiting === option.value
-                                 ? 'border-blue-500 bg-blue-500'
-                                 : 'border-gray-300'
-                             }`}
-                >
-                  {costWaiting === option.value && (
-                    <div className="w-2 h-2 bg-white rounded-full" />
-                  )}
-                </div>
-                <span
-                  className={`text-base ${
-                    costWaiting === option.value ? 'text-blue-900 font-medium' : 'text-gray-700'
-                  }`}
-                >
-                  {option.label}
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
+        <label className="block text-lg font-semibold text-gray-900 mb-6 text-center">
+          Extra time in the airport is:
+        </label>
+        <EmotionalSlider
+          value={costWaiting}
+          onChange={(val) => setCostWaiting(val as CostLevel)}
+          labels={waitingOptions.map(o => o.label)}
+        />
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex-1 h-12 rounded-xl font-semibold text-gray-700 bg-gray-100
-                     hover:bg-gray-200 active:scale-[0.98] transition-all"
-        >
-          Back
-        </button>
+      {/* Continue Button */}
+      <div>
         <button
           type="submit"
-          className="flex-1 h-12 rounded-xl font-semibold text-white bg-blue-500
-                     hover:bg-blue-600 active:scale-[0.98] transition-all"
+          className="w-full h-14 rounded-xl font-semibold text-white bg-blue-500
+                     hover:bg-blue-600 active:scale-[0.98] transition-all text-lg"
         >
-          Get Recommendation
+          Next: airport and flight details
         </button>
       </div>
     </form>

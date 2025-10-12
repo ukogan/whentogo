@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Wait Time - Variation 1: Horizontal Arc with Toggle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .arc-container {
+            position: relative;
+            height: 120px;
+            overflow: hidden;
+        }
+
+        .arc-path {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 100px;
+            border-radius: 50% 50% 0 0;
+            background: linear-gradient(90deg,
+                #10b981 0%,
+                #3b82f6 50%,
+                #f97316 100%);
+            transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 20px;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .arc-path.regular {
+            width: 300px;
+        }
+
+        .arc-path.fast {
+            width: 200px;
+            background: linear-gradient(90deg,
+                #10b981 0%,
+                #3b82f6 60%,
+                #f97316 100%);
+        }
+
+        .arc-path.skip {
+            width: 120px;
+            background: linear-gradient(90deg,
+                #10b981 0%,
+                #10b981 40%,
+                #3b82f6 100%);
+        }
+
+        .time-label {
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            transition: opacity 300ms;
+        }
+
+        .toggle-button {
+            transition: all 200ms ease;
+            position: relative;
+        }
+
+        .toggle-button.active {
+            background: #3b82f6;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .toggle-button.active::after {
+            content: "✓";
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+        }
+
+        .time-markers {
+            position: absolute;
+            bottom: -25px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            font-size: 11px;
+            color: #64748b;
+            transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .plane-icon {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            animation: fly 2s ease-in-out infinite;
+        }
+
+        @keyframes fly {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-5px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-gray-800">Expected Security Wait Time</h2>
+
+        <!-- Toggle buttons -->
+        <div class="flex gap-2">
+            <button onclick="selectOption('regular')"
+                    class="toggle-button active flex-1 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                Regular
+            </button>
+            <button onclick="selectOption('fast')"
+                    class="toggle-button flex-1 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                Fast Lane
+            </button>
+            <button onclick="selectOption('skip')"
+                    class="toggle-button flex-1 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                Skip Line
+            </button>
+        </div>
+
+        <!-- Arc visualization -->
+        <div class="arc-container">
+            <div id="arc" class="arc-path regular">
+                <span class="plane-icon">✈️</span>
+                <div class="time-label">
+                    <div id="mainTime" class="text-2xl">38 min</div>
+                    <div id="avgLabel" class="text-xs opacity-80">average</div>
+                </div>
+                <div class="time-markers">
+                    <span id="minTime">25</span>
+                    <span id="maxTime">50 min</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const options = {
+            regular: {
+                class: 'regular',
+                avg: '38 min',
+                min: '25',
+                max: '50 min'
+            },
+            fast: {
+                class: 'fast',
+                avg: '12 min',
+                min: '7',
+                max: '17 min'
+            },
+            skip: {
+                class: 'skip',
+                avg: '8 min',
+                min: '5',
+                max: '11 min'
+            }
+        };
+
+        let currentOption = 'regular';
+
+        function selectOption(option) {
+            // Update button states
+            document.querySelectorAll('.toggle-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update arc
+            const arc = document.getElementById('arc');
+            const data = options[option];
+
+            // Remove all option classes and add the selected one
+            arc.className = 'arc-path ' + data.class;
+
+            // Update time labels with fade effect
+            setTimeout(() => {
+                document.getElementById('mainTime').textContent = data.avg;
+                document.getElementById('minTime').textContent = data.min;
+                document.getElementById('maxTime').textContent = data.max;
+            }, 200);
+
+            currentOption = option;
+        }
+    </script>
+</body>
+</html>

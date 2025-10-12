@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Wait Time - Variation 4: Pill Toggle Dynamic Width</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .pill-toggle {
+            display: inline-flex;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .pill-option {
+            padding: 8px 16px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            transition: color 200ms;
+            position: relative;
+            z-index: 2;
+        }
+
+        .pill-option.active {
+            color: #1e293b;
+        }
+
+        .pill-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            height: calc(100% - 6px);
+            background: white;
+            border-radius: 9px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+        }
+
+        .dynamic-bar-container {
+            position: relative;
+            height: 60px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .dynamic-bar {
+            position: relative;
+            height: 40px;
+            border-radius: 20px;
+            background: linear-gradient(90deg,
+                #10b981 0%,
+                #3b82f6 50%,
+                #f97316 100%);
+            transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: left center;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+            overflow: hidden;
+        }
+
+        .dynamic-bar.regular {
+            width: 100%;
+        }
+
+        .dynamic-bar.fast {
+            width: 60%;
+            background: linear-gradient(90deg,
+                #10b981 0%,
+                #3b82f6 70%,
+                #f97316 100%);
+        }
+
+        .dynamic-bar.skip {
+            width: 35%;
+            background: linear-gradient(90deg,
+                #10b981 0%,
+                #10b981 60%,
+                #3b82f6 100%);
+        }
+
+        .time-markers {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            pointer-events: none;
+            transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .time-marker {
+            font-size: 11px;
+            color: white;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            transition: opacity 300ms;
+        }
+
+        .avg-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            font-weight: bold;
+            color: #1e293b;
+            font-size: 14px;
+            z-index: 10;
+            transition: all 300ms;
+        }
+
+        .bar-wave {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(255,255,255,0.3) 50%,
+                transparent 100%);
+            animation: wave 3s linear infinite;
+        }
+
+        @keyframes wave {
+            to { left: 100%; }
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .stat-item {
+            text-align: center;
+            transition: all 300ms;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e293b;
+            transition: all 300ms;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .bar-end-cap {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 40px;
+            height: 100%;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(249, 115, 22, 0.2) 100%);
+            border-radius: 0 20px 20px 0;
+            transition: opacity 300ms;
+        }
+
+        .dynamic-bar.skip .bar-end-cap,
+        .dynamic-bar.fast .bar-end-cap {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Security Wait Time Estimator</h2>
+
+        <!-- iOS-style pill toggle -->
+        <div class="pill-toggle">
+            <div class="pill-slider" id="pillSlider"></div>
+            <div class="pill-option active" onclick="selectOption('regular', this, 0)">
+                Regular
+            </div>
+            <div class="pill-option" onclick="selectOption('fast', this, 1)">
+                Fast Lane
+            </div>
+            <div class="pill-option" onclick="selectOption('skip', this, 2)">
+                Skip Line
+            </div>
+        </div>
+
+        <!-- Dynamic width bar -->
+        <div class="dynamic-bar-container">
+            <div id="dynamicBar" class="dynamic-bar regular">
+                <div class="bar-wave"></div>
+                <div class="bar-end-cap"></div>
+                <div class="time-markers">
+                    <span id="minMarker" class="time-marker">25</span>
+                    <span id="maxMarker" class="time-marker">50 min</span>
+                </div>
+                <div id="avgIndicator" class="avg-indicator">38 min</div>
+            </div>
+        </div>
+
+        <!-- Statistics row -->
+        <div class="stats-row">
+            <div class="stat-item">
+                <div id="bestCase" class="stat-value text-green-600">25</div>
+                <div class="stat-label">Best Case</div>
+            </div>
+            <div class="stat-item">
+                <div id="typical" class="stat-value text-blue-600">38</div>
+                <div class="stat-label">Typical</div>
+            </div>
+            <div class="stat-item">
+                <div id="worstCase" class="stat-value text-orange-600">50</div>
+                <div class="stat-label">Worst Case</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const options = {
+            regular: {
+                class: 'regular',
+                avg: '38 min',
+                min: '25',
+                max: '50 min',
+                stats: { best: '25', typical: '38', worst: '50' }
+            },
+            fast: {
+                class: 'fast',
+                avg: '12 min',
+                min: '7',
+                max: '17 min',
+                stats: { best: '7', typical: '12', worst: '17' }
+            },
+            skip: {
+                class: 'skip',
+                avg: '8 min',
+                min: '5',
+                max: '11 min',
+                stats: { best: '5', typical: '8', worst: '11' }
+            }
+        };
+
+        function selectOption(option, element, index) {
+            // Update pill toggle
+            document.querySelectorAll('.pill-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            element.classList.add('active');
+
+            // Move slider
+            const slider = document.getElementById('pillSlider');
+            const optionWidth = element.offsetWidth;
+            const optionLeft = element.offsetLeft - 3; // Account for padding
+            slider.style.width = `${optionWidth}px`;
+            slider.style.left = `${optionLeft}px`;
+
+            // Update dynamic bar
+            const bar = document.getElementById('dynamicBar');
+            const data = options[option];
+
+            bar.className = 'dynamic-bar ' + data.class;
+
+            // Update values with fade effect
+            setTimeout(() => {
+                document.getElementById('avgIndicator').textContent = data.avg;
+                document.getElementById('minMarker').textContent = data.min;
+                document.getElementById('maxMarker').textContent = data.max;
+
+                // Update stats
+                const statElements = ['bestCase', 'typical', 'worstCase'];
+                const statValues = [data.stats.best, data.stats.typical, data.stats.worst];
+
+                statElements.forEach((id, i) => {
+                    const el = document.getElementById(id);
+                    el.style.opacity = '0';
+                    setTimeout(() => {
+                        el.textContent = statValues[i];
+                        el.style.opacity = '1';
+                    }, 100 * i);
+                });
+            }, 200);
+        }
+
+        // Initialize pill slider position
+        window.addEventListener('load', () => {
+            const firstOption = document.querySelector('.pill-option.active');
+            const slider = document.getElementById('pillSlider');
+            slider.style.width = `${firstOption.offsetWidth}px`;
+            slider.style.left = '3px';
+        });
+    </script>
+</body>
+</html>

@@ -74,7 +74,6 @@ export default function SecuritySelector({ hasPreCheck, hasClear, onChange }: Se
   };
 
   const data = securityOptions[selected];
-  const barClass = selected === 'regular' ? 'w-full' : selected === 'fast' ? 'w-[60%]' : 'w-[35%]';
 
   return (
     <div className="space-y-5">
@@ -110,39 +109,70 @@ export default function SecuritySelector({ hasPreCheck, hasClear, onChange }: Se
         ))}
       </div>
 
-      {/* Dynamic width bar */}
-      <div className="relative h-[60px] flex items-center mt-5">
-        <div
-          className={`relative h-10 rounded-full transition-all duration-400 ease-out shadow-lg ${barClass}`}
-          style={{
-            background:
-              selected === 'regular'
-                ? 'linear-gradient(90deg, #10b981 0%, #3b82f6 50%, #f97316 100%)'
-                : selected === 'fast'
-                ? 'linear-gradient(90deg, #10b981 0%, #3b82f6 70%, #f97316 100%)'
-                : 'linear-gradient(90deg, #10b981 0%, #10b981 60%, #3b82f6 100%)',
-          }}
-        >
-          {/* Shimmer effect */}
-          <div className="absolute top-0 left-0 w-full h-full overflow-hidden rounded-full">
-            <div
-              className="absolute top-0 w-full h-full animate-shimmer"
-              style={{
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
-                animation: 'shimmer 3s linear infinite',
-              }}
-            />
+      {/* Thin gradient line with labels below */}
+      <div className="relative mt-5 pb-8">
+        <div className="relative h-2 w-full">
+          <div
+            className="absolute h-2 rounded-full transition-all duration-400 ease-out shadow-md"
+            style={{
+              left: `${(parseInt(data.min) / 50) * 100}%`,
+              width: `${((parseInt(data.max) - parseInt(data.min)) / 50) * 100}%`,
+              background:
+                selected === 'regular'
+                  ? 'linear-gradient(90deg, #10b981 0%, #3b82f6 50%, #f97316 100%)'
+                  : selected === 'fast'
+                  ? 'linear-gradient(90deg, #10b981 0%, #3b82f6 70%, #f97316 100%)'
+                  : 'linear-gradient(90deg, #10b981 0%, #10b981 60%, #3b82f6 100%)',
+            }}
+          >
+            {/* Shimmer effect */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden rounded-full">
+              <div
+                className="absolute top-0 w-full h-full animate-shimmer"
+                style={{
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+                  animation: 'shimmer 3s linear infinite',
+                }}
+              />
+            </div>
           </div>
 
-          {/* Time markers */}
-          <div className="absolute inset-0 flex items-center justify-between px-4 pointer-events-none">
-            <span className="text-[11px] text-white font-medium drop-shadow">{data.min}</span>
-            <span className="text-[11px] text-white font-medium drop-shadow">{data.max}</span>
+          {/* Min marker at left edge of gradient bar */}
+          <div
+            className="absolute transition-all duration-400"
+            style={{
+              left: `${(parseInt(data.min) / 50) * 100}%`,
+              top: '50%',
+              transform: 'translate(-100%, -50%) translateX(-8px)',
+            }}
+          >
+            <span className="text-xs text-gray-600">{data.min}</span>
           </div>
 
-          {/* Average indicator */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-3 py-1 rounded-xl shadow-md">
-            <span className="text-sm font-bold text-gray-900">{data.avg}</span>
+          {/* Max marker at right edge of gradient bar */}
+          <div
+            className="absolute transition-all duration-400"
+            style={{
+              left: `${(parseInt(data.max) / 50) * 100}%`,
+              top: '50%',
+              transform: 'translate(0%, -50%) translateX(8px)',
+            }}
+          >
+            <span className="text-xs text-gray-600">{data.max}</span>
+          </div>
+
+          {/* Triangle pointer at mean position */}
+          <div
+            className="absolute top-full mt-1 transition-all duration-400"
+            style={{
+              left: `${(parseInt(data.avg) / 50) * 100}%`,
+              transform: 'translateX(-50%)',
+            }}
+          >
+            <div className="flex flex-col items-center">
+              <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-blue-500" />
+              <span className="text-sm font-bold text-gray-900 mt-1">{data.avg} min</span>
+            </div>
           </div>
         </div>
       </div>
