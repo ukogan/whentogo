@@ -93,7 +93,7 @@ export default function EmotionalSlider({ value, onChange, labels }: EmotionalSl
                   ? 'transform scale-110'
                   : 'opacity-50 hover:opacity-75 hover:scale-105'
               }`}
-              style={{ width: '56px', height: '56px' }}
+              style={{ width: '44px', height: '44px' }}
             >
               {face}
               {/* Active indicator ring */}
@@ -106,8 +106,8 @@ export default function EmotionalSlider({ value, onChange, labels }: EmotionalSl
       </div>
 
       {/* Label centered below icons */}
-      <div className="flex justify-center min-h-[60px] pt-4">
-        <p className={`text-base font-medium transition-all duration-200 ${
+      <div className="flex justify-center min-h-[48px] pt-2">
+        <p className={`text-sm font-medium transition-all duration-200 ${
           displayValue === 1 ? 'text-green-700' :
           displayValue === 2 ? 'text-blue-600' :
           displayValue === 3 ? 'text-yellow-700' :
