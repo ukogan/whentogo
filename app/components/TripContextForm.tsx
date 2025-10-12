@@ -45,7 +45,7 @@ export default function TripContextForm({ onComplete, onPartialUpdate }: TripCon
     const context: TripContext = {
       airport,
       flightTime: new Date(), // Will be set by parent component with actual date/time
-      flightType,
+      flightType: 'domestic', // Default to domestic
       hasCheckedBag,
       hasPriorityBagCheck,
       hasPreCheck,
