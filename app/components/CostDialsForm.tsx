@@ -40,6 +40,14 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
     else if (confidence >= 0.70) estimatedWaitMin = 4;
     else estimatedWaitMin = 3;
 
+    // Estimate boarding timing (typical boarding starts 30-40 min before departure)
+    // If wait time is long, you'll arrive before boarding starts
+    const boardingStartMin = 35; // Typical boarding start time
+    const arriveBeforeBoardingStarts = estimatedWaitMin > boardingStartMin;
+    const boardingMinutes = arriveBeforeBoardingStarts
+      ? estimatedWaitMin - boardingStartMin
+      : boardingStartMin - estimatedWaitMin;
+
     // Convert confidence to "X out of Y" format
     let outOfText = '';
     const confidencePercent = Math.round(confidence * 100);
@@ -56,6 +64,8 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
       confidence: confidencePercent,
       outOfText,
       waitMinutes: estimatedWaitMin,
+      arriveBeforeBoardingStarts,
+      boardingMinutes,
     };
   }, [costMissing, costWaiting]);
 
@@ -156,12 +166,40 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
 
           {/* Wait Time Preview */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
-            <div className="text-center">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gate time</h4>
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-500 mb-2">
-                ~{previewMetrics.waitMinutes} min
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Before door closes</p>
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gate time before door closes</h4>
+
+            <div className="text-3xl font-bold text-blue-600 dark:text-blue-500 mb-3">
+              ~{previewMetrics.waitMinutes} min
+            </div>
+
+            {/* Coffee Cup Icons */}
+            <div className="flex gap-1 mb-3">
+              {Array.from({ length: 5 }).map((_, i) => {
+                const threshold = i * 15; // 0, 15, 30, 45, 60 minutes
+                const isFilled = previewMetrics.waitMinutes > threshold;
+
+                return (
+                  <div
+                    key={i}
+                    className={`w-4 h-5 rounded-sm transition-colors ${
+                      isFilled ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Boarding Status */}
+            <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+              {previewMetrics.arriveBeforeBoardingStarts ? (
+                <p className="text-xs text-green-600 dark:text-green-500 font-medium">
+                  ✓ Arrive {previewMetrics.boardingMinutes} min before boarding starts
+                </p>
+              ) : (
+                <p className="text-xs text-orange-600 dark:text-orange-500 font-medium">
+                  ⚠ Arrive {previewMetrics.boardingMinutes} min after boarding starts
+                </p>
+              )}
             </div>
           </div>
         </div>
