@@ -81,28 +81,37 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
   };
 
   const missingOptions = [
-    { value: 1 as CostLevel, label: "No big deal, I'd catch another flight" },
-    { value: 2 as CostLevel, label: 'Annoying and inconvenient' },
-    { value: 3 as CostLevel, label: 'Very stressful' },
-    { value: 4 as CostLevel, label: 'Expensive or creates major problems' },
-    { value: 5 as CostLevel, label: 'Catastrophic — I cannot miss this' },
+    { value: 1 as CostLevel, label: "no big deal, I'll get a bite" },
+    { value: 2 as CostLevel, label: 'annoying and inconvenient' },
+    { value: 3 as CostLevel, label: 'very stressful' },
+    { value: 4 as CostLevel, label: 'expensive' },
+    { value: 5 as CostLevel, label: 'catastrophic — I cannot miss this' },
   ];
 
   const waitingOptions = [
-    { value: 1 as CostLevel, label: "No problem, I'll grab coffee" },
-    { value: 2 as CostLevel, label: 'A bit boring' },
-    { value: 3 as CostLevel, label: 'A waste of time' },
-    { value: 4 as CostLevel, label: 'Really annoying' },
-    { value: 5 as CostLevel, label: 'Unbearable — I hate waiting' },
+    { value: 1 as CostLevel, label: "no problem, I'll grab coffee" },
+    { value: 2 as CostLevel, label: 'a bit boring' },
+    { value: 3 as CostLevel, label: 'a waste of time' },
+    { value: 4 as CostLevel, label: 'really annoying' },
+    { value: 5 as CostLevel, label: 'unbearable — I hate waiting' },
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-10">
-      {/* Missing Flight Dial */}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Missing Flight - Combined sentence */}
       <div>
-        <label className="block text-lg font-semibold text-gray-900 mb-6 text-center">
-          Missing the flight would be:
-        </label>
+        <p className="text-base text-gray-900 mb-4 text-center">
+          Missing the flight would be{' '}
+          <span className={`font-semibold ${
+            costMissing === 1 ? 'text-green-700' :
+            costMissing === 2 ? 'text-blue-600' :
+            costMissing === 3 ? 'text-yellow-700' :
+            costMissing === 4 ? 'text-orange-700' :
+            'text-red-700'
+          }`}>
+            {missingOptions[costMissing - 1].label}
+          </span>
+        </p>
         <EmotionalSlider
           value={costMissing}
           onChange={(val) => setCostMissing(val as CostLevel)}
@@ -110,11 +119,20 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
         />
       </div>
 
-      {/* Waiting Time Dial */}
+      {/* Waiting Time - Combined sentence */}
       <div>
-        <label className="block text-lg font-semibold text-gray-900 mb-6 text-center">
-          Extra time in the airport is:
-        </label>
+        <p className="text-base text-gray-900 mb-4 text-center">
+          Extra time in the airport is{' '}
+          <span className={`font-semibold ${
+            costWaiting === 1 ? 'text-green-700' :
+            costWaiting === 2 ? 'text-blue-600' :
+            costWaiting === 3 ? 'text-yellow-700' :
+            costWaiting === 4 ? 'text-orange-700' :
+            'text-red-700'
+          }`}>
+            {waitingOptions[costWaiting - 1].label}
+          </span>
+        </p>
         <EmotionalSlider
           value={costWaiting}
           onChange={(val) => setCostWaiting(val as CostLevel)}
