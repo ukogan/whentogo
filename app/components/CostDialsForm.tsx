@@ -40,8 +40,21 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
     else if (confidence >= 0.70) estimatedWaitMin = 4;
     else estimatedWaitMin = 3;
 
+    // Convert confidence to "X out of Y" format
+    let outOfText = '';
+    const confidencePercent = Math.round(confidence * 100);
+    if (confidence >= 0.999) outOfText = '999 out of 1000';
+    else if (confidence >= 0.99) outOfText = '99 out of 100';
+    else if (confidence >= 0.95) outOfText = '19 out of 20';
+    else if (confidence >= 0.90) outOfText = '9 out of 10';
+    else if (confidence >= 0.80) outOfText = '4 out of 5';
+    else if (confidence >= 0.75) outOfText = '3 out of 4';
+    else if (confidence >= 0.66) outOfText = '2 out of 3';
+    else outOfText = `${confidencePercent} out of 100`;
+
     return {
-      confidence: Math.round(confidence * 100),
+      confidence: confidencePercent,
+      outOfText,
       waitMinutes: estimatedWaitMin,
     };
   }, [costMissing, costWaiting]);
@@ -108,11 +121,36 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
           {/* Confidence Preview */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
             <div className="text-center">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confidence</h4>
-              <div className="text-3xl font-bold text-green-600 dark:text-green-500 mb-2">
-                {previewMetrics.confidence}%
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">You'll make it</h4>
+              <div className="text-lg font-bold text-green-600 dark:text-green-500 mb-3">
+                {previewMetrics.outOfText}
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Chance you'll make your flight</p>
+              {/* Airplane icon filled to percentage */}
+              <div className="relative h-16 flex items-center justify-center">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="w-24 h-24"
+                  style={{ transform: 'rotate(45deg)' }}
+                >
+                  {/* Background airplane (gray) */}
+                  <path
+                    d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
+                    fill="#e5e7eb"
+                  />
+                  {/* Filled airplane (green) - clipped to percentage */}
+                  <defs>
+                    <clipPath id={`preview-plane-clip-${previewMetrics.confidence}`}>
+                      <rect x="0" y="0" width="24" height={24 * (previewMetrics.confidence / 100)} />
+                    </clipPath>
+                  </defs>
+                  <path
+                    d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
+                    fill="#10b981"
+                    clipPath={`url(#preview-plane-clip-${previewMetrics.confidence})`}
+                  />
+                </svg>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">times</p>
             </div>
           </div>
 
