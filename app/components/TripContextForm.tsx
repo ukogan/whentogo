@@ -98,31 +98,35 @@ export default function TripContextForm({ onComplete, onPartialUpdate }: TripCon
       </div>
 
       {/* Bag Check Selector */}
-      <BagCheckSelector
-        hasCheckedBag={hasCheckedBag}
-        hasPriorityBagCheck={hasPriorityBagCheck}
-        onChange={(hasBag, isPriority) => {
-          setHasCheckedBag(hasBag);
-          setHasPriorityBagCheck(isPriority);
-          // Immediately update parent with new bag check state
-          onPartialUpdate?.({ hasCheckedBag: hasBag, hasPriorityBagCheck: isPriority });
-        }}
-      />
+      <div className="border-2 border-gray-200 rounded-xl p-4">
+        <BagCheckSelector
+          hasCheckedBag={hasCheckedBag}
+          hasPriorityBagCheck={hasPriorityBagCheck}
+          onChange={(hasBag, isPriority) => {
+            setHasCheckedBag(hasBag);
+            setHasPriorityBagCheck(isPriority);
+            // Immediately update parent with new bag check state
+            onPartialUpdate?.({ hasCheckedBag: hasBag, hasPriorityBagCheck: isPriority });
+          }}
+        />
+      </div>
 
       {/* Security Selector */}
-      <SecuritySelector
-        hasPreCheck={hasPreCheck}
-        hasClear={hasClear}
-        onChange={(preCheck, clear) => {
-          setHasPreCheck(preCheck);
-          setHasClear(clear);
-          // Immediately update parent with new security state
-          onPartialUpdate?.({ hasPreCheck: preCheck, hasClear: clear });
-        }}
-      />
+      <div className="border-2 border-gray-200 rounded-xl p-4">
+        <SecuritySelector
+          hasPreCheck={hasPreCheck}
+          hasClear={hasClear}
+          onChange={(preCheck, clear) => {
+            setHasPreCheck(preCheck);
+            setHasClear(clear);
+            // Immediately update parent with new security state
+            onPartialUpdate?.({ hasPreCheck: preCheck, hasClear: clear });
+          }}
+        />
+      </div>
 
       {/* Timeline Slider */}
-      <div>
+      <div className="border-2 border-gray-200 rounded-xl p-4">
         <label className="block text-sm font-medium text-gray-700 mb-3">
           Gate Time
         </label>
