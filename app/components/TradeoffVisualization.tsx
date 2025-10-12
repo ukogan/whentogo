@@ -202,102 +202,48 @@ export default function TradeoffVisualization({
         </div>
       </motion.div>
 
-      {/* Trade-off Metrics */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Safety Score */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl p-6 border border-gray-200"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <h3 className="font-semibold text-gray-900">Confidence</h3>
+      {/* Journey Summary */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white rounded-xl p-4 border border-gray-200"
+      >
+        <h3 className="font-semibold text-gray-900 mb-3 text-sm">Your Journey</h3>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-600">Flight departure:</span>
+            <span className="font-medium">{formatTime(simulationInputs.tripContext.flightTime)}</span>
           </div>
-
-          <div className="text-3xl font-bold text-green-600 mb-3">{safetyScore}%</div>
-
-          {/* Single large airplane filled to percentage */}
-          <div className="relative h-16 flex items-center justify-center">
-            <svg
-              viewBox="0 0 24 24"
-              className="w-32 h-32"
-              style={{ transform: 'rotate(45deg)' }}
-            >
-              {/* Background airplane (gray) */}
-              <path
-                d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
-                fill="#e5e7eb"
-              />
-              {/* Filled airplane (green) - clipped to percentage */}
-              <defs>
-                <clipPath id={`plane-clip-${safetyScore}`}>
-                  <rect x="0" y="0" width="24" height={24 * (safetyScore / 100)} />
-                </clipPath>
-              </defs>
-              <path
-                d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
-                fill="#10b981"
-                clipPath={`url(#plane-clip-${safetyScore})`}
-              />
-            </svg>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Airport:</span>
+            <span className="font-medium">{simulationInputs.tripContext.airport.code} - {simulationInputs.tripContext.airport.name}</span>
           </div>
-
-          <p className="text-xs text-gray-500 mt-2">Chance you&apos;ll make your flight</p>
-        </motion.div>
-
-        {/* Wait Time Before Door Closes */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-xl p-6 border border-gray-200"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <h3 className="font-semibold text-gray-900">Gate time before door closes</h3>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Travel mode:</span>
+            <span className="font-medium capitalize">{simulationInputs.travelEstimate.mode}</span>
           </div>
-
-          <div className="text-3xl font-bold text-blue-600 mb-3">~{waitMinutes} min</div>
-
-          {/* Coffee Cup Icons */}
-          <div className="flex gap-1">
-            {Array.from({ length: 5 }).map((_, i) => {
-              const threshold = i * 15; // 0, 15, 30, 45, 60 minutes
-              const isFilled = waitMinutes > threshold;
-
-              return (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.3 + i * 0.05 }}
-                  className={`w-4 h-5 rounded-sm ${
-                    isFilled ? 'bg-blue-500' : 'bg-gray-300'
-                  }`}
-                />
-              );
-            })}
+          <div className="flex justify-between">
+            <span className="text-gray-600">Security:</span>
+            <span className="font-medium">
+              {simulationInputs.tripContext.hasClear ? 'CLEAR' : simulationInputs.tripContext.hasPreCheck ? 'TSA PreCheck' : 'Regular'}
+            </span>
           </div>
-
-          {/* Boarding Status */}
-          <div className="mt-3 pt-3 border-t border-gray-200">
-            {tradeoffMetrics.arriveBeforeBoardingStarts ? (
-              <p className="text-xs text-green-600 font-medium">
-                ✓ Arrive {boardingMinutes} min before boarding starts
-              </p>
-            ) : (
-              <p className="text-xs text-orange-600 font-medium">
-                ⚠ Arrive {boardingMinutes} min after boarding starts
-              </p>
-            )}
-          </div>
-        </motion.div>
-      </div>
+          {simulationInputs.tripContext.hasCheckedBag && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Checked bag:</span>
+              <span className="font-medium">
+                {simulationInputs.tripContext.hasPriorityBagCheck ? 'Priority' : 'Regular'}
+              </span>
+            </div>
+          )}
+        </div>
+      </motion.div>
 
       {/* Interactive Time Adjustment Dial */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
-        <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-blue-600" />
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+        <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 text-sm">
+          <TrendingUp className="h-4 w-4 text-blue-600" />
           Adjust Departure Time
         </h3>
 
@@ -606,37 +552,37 @@ export default function TradeoffVisualization({
       </div>
 
       {/* Action Buttons */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <button
           onClick={() => downloadCalendarEvent(recommendation, simulationInputs)}
-          className="w-full h-14 rounded-xl font-semibold text-white bg-blue-500
+          className="w-full h-12 rounded-xl font-semibold text-white bg-blue-500
                      hover:bg-blue-600 active:scale-[0.98] transition-all
                      flex items-center justify-center gap-2 shadow-lg"
         >
           <Calendar className="h-5 w-5" />
           Add to Calendar
         </button>
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <button
             onClick={handleDownload}
-            className="flex-1 h-12 rounded-xl font-semibold text-gray-700 bg-white border-2 border-gray-200
+            className="flex-1 h-10 rounded-xl font-medium text-sm text-gray-700 bg-white border-2 border-gray-200
                        hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all
                        flex items-center justify-center gap-2"
           >
             <Download className="h-4 w-4" />
-            Download Data
+            Download
           </button>
           <button
             onClick={onStartOver}
-            className="flex-1 h-12 rounded-xl font-semibold text-gray-700 bg-white border-2 border-gray-200
+            className="flex-1 h-10 rounded-xl font-medium text-sm text-gray-700 bg-white border-2 border-gray-200
                        hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all"
           >
-            Plan Another Trip
+            Start Over
           </button>
         </div>
         <button
           onClick={onBack}
-          className="w-full h-12 rounded-xl font-semibold text-gray-600 bg-gray-50
+          className="w-full h-10 rounded-xl font-medium text-sm text-gray-600 bg-gray-50
                      hover:bg-gray-100 active:scale-[0.98] transition-all
                      flex items-center justify-center gap-2"
         >
