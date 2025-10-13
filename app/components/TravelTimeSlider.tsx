@@ -19,63 +19,58 @@ export default function TravelTimeSlider({
 
   return (
     <div className="space-y-4">
-      {/* Lognormal Distribution Visualization */}
-      <div className="relative mt-5">
-        <svg viewBox="0 0 200 50" className="w-full h-12" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="travelTimeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#86efac" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#86efac" stopOpacity="0.2" />
-            </linearGradient>
-          </defs>
-
-          {/* Lognormal distribution shape: sharp rise, peak left, fat right tail */}
-          {/* Distribution spans from min to max horizontally */}
-          <path
-            d={`M ${(min / 120) * 200},50 L ${(min / 120) * 200},40 Q ${(min / 120) * 200 + 20},18 ${(min / 120) * 200 + 40},9 T ${((min + max) / 2 / 120) * 200},6 Q ${((min + max) / 2 / 120) * 200 + 20},7 ${((min + max) / 2 / 120) * 200 + 40},11 T ${(max / 120) * 200 - 20},22 Q ${(max / 120) * 200 - 10},28 ${(max / 120) * 200},34 L ${(max / 120) * 200},38 L ${(max / 120) * 200},50 Z`}
-            fill="url(#travelTimeGradient)"
-            className="transition-all duration-400"
+      {/* Distribution Visualization with gradient bar */}
+      <div className="relative mt-5 pb-8">
+        <div className="relative h-12 w-full">
+          {/* Gradient bar positioned based on min/max */}
+          <div
+            className="absolute rounded-full transition-all duration-400 ease-out shadow-md overflow-hidden"
+            style={{
+              left: `${(min / 120) * 100}%`,
+              width: `${((max - min) / 120) * 100}%`,
+              height: '100%',
+              background: 'linear-gradient(to right, rgba(16, 185, 129, 0.3) 0%, rgba(59, 130, 246, 0.5) 50%, rgba(249, 115, 22, 0.3) 100%)',
+            }}
           />
 
           {/* Mean marker (dashed line positioned right of peak) */}
-          <line
-            x1={`${(avg / 120) * 200}`}
-            y1="3"
-            x2={`${(avg / 120) * 200}`}
-            y2="50"
-            stroke="#22c55e"
-            strokeWidth="2"
-            strokeDasharray="3,3"
-            className="transition-all duration-400"
+          <div
+            className="absolute top-0 bottom-0 w-0.5 bg-green-500 transition-all duration-400"
+            style={{
+              left: `${(avg / 120) * 100}%`,
+              backgroundImage: 'repeating-linear-gradient(0deg, #22c55e, #22c55e 4px, transparent 4px, transparent 8px)',
+            }}
           />
 
           {/* Min label */}
-          <text
-            x={`${(min / 120) * 200}`}
-            y="46"
-            fontSize="9"
-            fill="#6b7280"
-            textAnchor="middle"
-            className="transition-all duration-400"
+          <div
+            className="absolute transition-all duration-400"
+            style={{
+              left: `${(min / 120) * 100}%`,
+              top: '100%',
+              transform: 'translateX(-50%)',
+              marginTop: '4px',
+            }}
           >
-            {min}
-          </text>
+            <span className="text-xs text-gray-600">{min}</span>
+          </div>
 
           {/* Max label */}
-          <text
-            x={`${(max / 120) * 200}`}
-            y="46"
-            fontSize="9"
-            fill="#6b7280"
-            textAnchor="middle"
-            className="transition-all duration-400"
+          <div
+            className="absolute transition-all duration-400"
+            style={{
+              left: `${(max / 120) * 100}%`,
+              top: '100%',
+              transform: 'translateX(-50%)',
+              marginTop: '4px',
+            }}
           >
-            {max}
-          </text>
-        </svg>
+            <span className="text-xs text-gray-600">{max}</span>
+          </div>
+        </div>
 
         {/* Mean value label below */}
-        <div className="flex justify-center mt-1">
+        <div className="flex justify-center mt-6">
           <span className="text-sm font-bold text-gray-900">{avg} min</span>
         </div>
       </div>

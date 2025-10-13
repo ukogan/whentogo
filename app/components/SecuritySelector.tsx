@@ -109,63 +109,58 @@ export default function SecuritySelector({ hasPreCheck, hasClear, onChange }: Se
         ))}
       </div>
 
-      {/* Ex-Gaussian Distribution Visualization */}
-      <div className="relative mt-5">
-        <svg viewBox="0 0 200 50" className="w-full h-12" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id={`securityGradient-${selected}`} x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#fed7aa" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#fed7aa" stopOpacity="0.2" />
-            </linearGradient>
-          </defs>
-
-          {/* Ex-Gaussian distribution shape: normal body + exponential tail */}
-          {/* Distribution spans from min to max horizontally */}
-          <path
-            d={`M ${(parseInt(data.min) / 50) * 200},50 L ${(parseInt(data.min) / 50) * 200},45 Q ${(parseInt(data.min) / 50) * 200 + 15},25 ${(parseInt(data.min) / 50) * 200 + 30},12 T ${((parseInt(data.min) + parseInt(data.max)) / 2 / 50) * 200},6 Q ${((parseInt(data.min) + parseInt(data.max)) / 2 / 50) * 200 + 15},7 ${((parseInt(data.min) + parseInt(data.max)) / 2 / 50) * 200 + 30},12 Q ${((parseInt(data.min) + parseInt(data.max)) / 2 / 50) * 200 + 45},18 ${((parseInt(data.min) + parseInt(data.max)) / 2 / 50) * 200 + 60},25 T ${(parseInt(data.max) / 50) * 200 - 10},36 Q ${(parseInt(data.max) / 50) * 200 - 5},40 ${(parseInt(data.max) / 50) * 200},43 L ${(parseInt(data.max) / 50) * 200},44 L ${(parseInt(data.max) / 50) * 200},50 Z`}
-            fill={`url(#securityGradient-${selected})`}
-            className="transition-all duration-400"
+      {/* Distribution Visualization with gradient bar */}
+      <div className="relative mt-5 pb-8">
+        <div className="relative h-12 w-full">
+          {/* Gradient bar positioned based on min/max */}
+          <div
+            className="absolute rounded-full transition-all duration-400 ease-out shadow-md overflow-hidden"
+            style={{
+              left: `${(parseInt(data.min) / 50) * 100}%`,
+              width: `${((parseInt(data.max) - parseInt(data.min)) / 50) * 100}%`,
+              height: '100%',
+              background: 'linear-gradient(to right, rgba(16, 185, 129, 0.3) 0%, rgba(59, 130, 246, 0.5) 50%, rgba(249, 115, 22, 0.3) 100%)',
+            }}
           />
 
           {/* Mean marker (dashed line positioned right of peak) */}
-          <line
-            x1={`${(parseInt(data.avg) / 50) * 200}`}
-            y1="3"
-            x2={`${(parseInt(data.avg) / 50) * 200}`}
-            y2="50"
-            stroke="#f97316"
-            strokeWidth="2"
-            strokeDasharray="3,3"
-            className="transition-all duration-400"
+          <div
+            className="absolute top-0 bottom-0 w-0.5 bg-orange-500 transition-all duration-400"
+            style={{
+              left: `${(parseInt(data.avg) / 50) * 100}%`,
+              backgroundImage: 'repeating-linear-gradient(0deg, #f97316, #f97316 4px, transparent 4px, transparent 8px)',
+            }}
           />
 
           {/* Min label */}
-          <text
-            x={`${(parseInt(data.min) / 50) * 200}`}
-            y="46"
-            fontSize="9"
-            fill="#6b7280"
-            textAnchor="middle"
-            className="transition-all duration-400"
+          <div
+            className="absolute transition-all duration-400"
+            style={{
+              left: `${(parseInt(data.min) / 50) * 100}%`,
+              top: '100%',
+              transform: 'translateX(-50%)',
+              marginTop: '4px',
+            }}
           >
-            {data.min}
-          </text>
+            <span className="text-xs text-gray-600">{data.min}</span>
+          </div>
 
           {/* Max label */}
-          <text
-            x={`${(parseInt(data.max) / 50) * 200}`}
-            y="46"
-            fontSize="9"
-            fill="#6b7280"
-            textAnchor="middle"
-            className="transition-all duration-400"
+          <div
+            className="absolute transition-all duration-400"
+            style={{
+              left: `${(parseInt(data.max) / 50) * 100}%`,
+              top: '100%',
+              transform: 'translateX(-50%)',
+              marginTop: '4px',
+            }}
           >
-            {data.max}
-          </text>
-        </svg>
+            <span className="text-xs text-gray-600">{data.max}</span>
+          </div>
+        </div>
 
         {/* Mean value label below */}
-        <div className="flex justify-center mt-1">
+        <div className="flex justify-center mt-6">
           <span className="text-sm font-bold text-gray-900">{data.avg} min</span>
         </div>
       </div>

@@ -112,64 +112,59 @@ export default function BagCheckSelector({ hasCheckedBag, hasPriorityBagCheck, o
         ))}
       </div>
 
-      {/* Lognormal Distribution Visualization */}
+      {/* Distribution Visualization with gradient bar */}
       {showBar && (
-        <div className="relative mt-5">
-          <svg viewBox="0 0 200 50" className="w-full h-12" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id={`bagCheckGradient-${selected}`} x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#86efac" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="#86efac" stopOpacity="0.2" />
-              </linearGradient>
-            </defs>
-
-            {/* Lognormal distribution shape: sharp rise, peak left, fat right tail */}
-            {/* Distribution spans from min to max horizontally */}
-            <path
-              d={`M ${(parseInt(data.min) / 35) * 200},50 L ${(parseInt(data.min) / 35) * 200},40 Q ${(parseInt(data.min) / 35) * 200 + 20},18 ${(parseInt(data.min) / 35) * 200 + 40},9 T ${((parseInt(data.min) + parseInt(data.max)) / 2 / 35) * 200},6 Q ${((parseInt(data.min) + parseInt(data.max)) / 2 / 35) * 200 + 20},7 ${((parseInt(data.min) + parseInt(data.max)) / 2 / 35) * 200 + 40},11 T ${(parseInt(data.max) / 35) * 200 - 20},22 Q ${(parseInt(data.max) / 35) * 200 - 10},28 ${(parseInt(data.max) / 35) * 200},34 L ${(parseInt(data.max) / 35) * 200},38 L ${(parseInt(data.max) / 35) * 200},50 Z`}
-              fill={`url(#bagCheckGradient-${selected})`}
-              className="transition-all duration-400"
+        <div className="relative mt-5 pb-8">
+          <div className="relative h-12 w-full">
+            {/* Gradient bar positioned based on min/max */}
+            <div
+              className="absolute rounded-full transition-all duration-400 ease-out shadow-md overflow-hidden"
+              style={{
+                left: `${(parseInt(data.min) / 35) * 100}%`,
+                width: `${((parseInt(data.max) - parseInt(data.min)) / 35) * 100}%`,
+                height: '100%',
+                background: 'linear-gradient(to right, rgba(16, 185, 129, 0.3) 0%, rgba(59, 130, 246, 0.5) 50%, rgba(249, 115, 22, 0.3) 100%)',
+              }}
             />
 
             {/* Mean marker (dashed line positioned right of peak) */}
-            <line
-              x1={`${(parseInt(data.avg) / 35) * 200}`}
-              y1="3"
-              x2={`${(parseInt(data.avg) / 35) * 200}`}
-              y2="50"
-              stroke="#22c55e"
-              strokeWidth="2"
-              strokeDasharray="3,3"
-              className="transition-all duration-400"
+            <div
+              className="absolute top-0 bottom-0 w-0.5 bg-green-500 transition-all duration-400"
+              style={{
+                left: `${(parseInt(data.avg) / 35) * 100}%`,
+                backgroundImage: 'repeating-linear-gradient(0deg, #22c55e, #22c55e 4px, transparent 4px, transparent 8px)',
+              }}
             />
 
             {/* Min label */}
-            <text
-              x={`${(parseInt(data.min) / 35) * 200}`}
-              y="46"
-              fontSize="9"
-              fill="#6b7280"
-              textAnchor="middle"
-              className="transition-all duration-400"
+            <div
+              className="absolute transition-all duration-400"
+              style={{
+                left: `${(parseInt(data.min) / 35) * 100}%`,
+                top: '100%',
+                transform: 'translateX(-50%)',
+                marginTop: '4px',
+              }}
             >
-              {data.min}
-            </text>
+              <span className="text-xs text-gray-600">{data.min}</span>
+            </div>
 
             {/* Max label */}
-            <text
-              x={`${(parseInt(data.max) / 35) * 200}`}
-              y="46"
-              fontSize="9"
-              fill="#6b7280"
-              textAnchor="middle"
-              className="transition-all duration-400"
+            <div
+              className="absolute transition-all duration-400"
+              style={{
+                left: `${(parseInt(data.max) / 35) * 100}%`,
+                top: '100%',
+                transform: 'translateX(-50%)',
+                marginTop: '4px',
+              }}
             >
-              {data.max}
-            </text>
-          </svg>
+              <span className="text-xs text-gray-600">{data.max}</span>
+            </div>
+          </div>
 
           {/* Mean value label below */}
-          <div className="flex justify-center mt-1">
+          <div className="flex justify-center mt-6">
             <span className="text-sm font-bold text-gray-900">{data.avg} min</span>
           </div>
         </div>
