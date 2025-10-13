@@ -258,8 +258,8 @@ export default function TradeoffVisualization({
             min="-20"
             max="20"
             step="1"
-            value={adjustmentMinutes}
-            onChange={(e) => setAdjustmentMinutes(Number(e.target.value))}
+            value={-adjustmentMinutes}
+            onChange={(e) => setAdjustmentMinutes(-Number(e.target.value))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer
                        [&::-webkit-slider-thumb]:appearance-none
                        [&::-webkit-slider-thumb]:w-5
@@ -270,7 +270,6 @@ export default function TradeoffVisualization({
                        [&::-webkit-slider-thumb]:shadow-lg
                        [&::-webkit-slider-thumb]:hover:bg-blue-600
                        [&::-webkit-slider-thumb]:transition-colors"
-            style={{ direction: 'rtl' }}
           />
           <div className="flex items-center justify-center text-xs text-gray-500 mt-1">
             <span>±20 minutes</span>
