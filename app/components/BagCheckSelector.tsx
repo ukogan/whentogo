@@ -112,59 +112,85 @@ export default function BagCheckSelector({ hasCheckedBag, hasPriorityBagCheck, o
         ))}
       </div>
 
-      {/* Distribution Visualization with gradient bar */}
+      {/* Lognormal Distribution Visualization */}
       {showBar && (
         <div className="relative mt-5 pb-8">
-          <div className="relative h-12 w-full">
-            {/* Gradient bar positioned based on min/max */}
-            <div
-              className="absolute rounded-full transition-all duration-400 ease-out shadow-md overflow-hidden"
-              style={{
-                left: `${(parseInt(data.min) / 35) * 100}%`,
-                width: `${((parseInt(data.max) - parseInt(data.min)) / 35) * 100}%`,
-                height: '100%',
-                background: 'linear-gradient(to right, rgba(16, 185, 129, 0.3) 0%, rgba(59, 130, 246, 0.5) 50%, rgba(249, 115, 22, 0.3) 100%)',
-              }}
+          <svg viewBox="0 0 200 60" className="w-full h-16" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id={`bagGradient-${selected}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#86efac" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#86efac" stopOpacity="0.1" />
+              </linearGradient>
+            </defs>
+
+            {/* Distribution curve */}
+            <path
+              d={(() => {
+                const min = parseInt(data.min);
+                const max = parseInt(data.max);
+                const mode = min + (max - min) * 0.3;
+                const sigma = (max - min) / 6;
+                const lambda = 0.3;
+
+                const points: Array<{x: number; y: number}> = [];
+                const numPoints = 100;
+
+                for (let i = 0; i <= numPoints; i++) {
+                  const minute = min + ((max - min) * i / numPoints);
+                  const x = (minute / 35) * 200;
+                  const relativeTime = minute - mode;
+
+                  let y = 0;
+                  if (relativeTime >= 0) {
+                    const gaussianPart = Math.exp(-Math.pow(relativeTime, 2) / (2 * Math.pow(sigma, 2)));
+                    const exponentialPart = Math.exp(-lambda * relativeTime);
+                    y = gaussianPart * (1 + exponentialPart * 0.3);
+                    if (minute > max) y *= Math.exp(-2 * (minute - max));
+                  }
+
+                  points.push({ x, y });
+                }
+
+                const maxY = Math.max(...points.map(p => p.y));
+                const scaledPoints = points.map(p => ({ x: p.x, y: (p.y / maxY) * 45 }));
+
+                let path = `M ${scaledPoints[0].x} 60 L ${scaledPoints[0].x} ${60 - scaledPoints[0].y}`;
+                for (let i = 1; i < scaledPoints.length; i++) {
+                  const curr = scaledPoints[i];
+                  path += ` L ${curr.x} ${60 - curr.y}`;
+                }
+                path += ` L ${scaledPoints[scaledPoints.length - 1].x} 60 Z`;
+
+                return path;
+              })()}
+              fill={`url(#bagGradient-${selected})`}
+              className="transition-all duration-400"
             />
 
-            {/* Mean marker (dashed line positioned right of peak) */}
-            <div
-              className="absolute top-0 bottom-0 w-0.5 bg-green-500 transition-all duration-400"
-              style={{
-                left: `${(parseInt(data.avg) / 35) * 100}%`,
-                backgroundImage: 'repeating-linear-gradient(0deg, #22c55e, #22c55e 4px, transparent 4px, transparent 8px)',
-              }}
+            {/* Mean marker */}
+            <line
+              x1={(parseInt(data.avg) / 35) * 200}
+              y1="5"
+              x2={(parseInt(data.avg) / 35) * 200}
+              y2="60"
+              stroke="#22c55e"
+              strokeWidth="1.5"
+              strokeDasharray="3,3"
+              opacity="0.8"
+              className="transition-all duration-400"
             />
 
-            {/* Min label */}
-            <div
-              className="absolute transition-all duration-400"
-              style={{
-                left: `${(parseInt(data.min) / 35) * 100}%`,
-                top: '100%',
-                transform: 'translateX(-50%)',
-                marginTop: '4px',
-              }}
-            >
-              <span className="text-xs text-gray-600">{data.min}</span>
-            </div>
-
-            {/* Max label */}
-            <div
-              className="absolute transition-all duration-400"
-              style={{
-                left: `${(parseInt(data.max) / 35) * 100}%`,
-                top: '100%',
-                transform: 'translateX(-50%)',
-                marginTop: '4px',
-              }}
-            >
-              <span className="text-xs text-gray-600">{data.max}</span>
-            </div>
-          </div>
+            {/* Min/Max labels */}
+            <text x={(parseInt(data.min) / 35) * 200} y="57" fontSize="8" fill="#6b7280" textAnchor="middle">
+              {data.min}
+            </text>
+            <text x={(parseInt(data.max) / 35) * 200} y="57" fontSize="8" fill="#6b7280" textAnchor="middle">
+              {data.max}
+            </text>
+          </svg>
 
           {/* Mean value label below */}
-          <div className="flex justify-center mt-6">
+          <div className="flex justify-center mt-2">
             <span className="text-sm font-bold text-gray-900">{data.avg} min</span>
           </div>
         </div>

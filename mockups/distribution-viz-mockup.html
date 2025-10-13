@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Security Time Distribution Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .options-selector {
+            display: flex;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .option-btn {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .option-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .option-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option-btn h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .option-btn .time-range {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .visualization-container {
+            padding: 2rem;
+            background: white;
+        }
+
+        .vis-header {
+            margin-bottom: 2rem;
+        }
+
+        .vis-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .vis-description {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .distribution-wrapper {
+            position: relative;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+
+        .distribution-container {
+            position: relative;
+            height: 80px;
+            margin-bottom: 2rem;
+        }
+
+        .distribution-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .timeline-labels {
+            position: relative;
+            height: 30px;
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .timeline-label {
+            position: absolute;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-unit {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: normal;
+            margin-left: 0.2rem;
+        }
+
+        .info-panel {
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            padding: 1rem 1.5rem;
+            margin: 2rem;
+            border-radius: 4px;
+        }
+
+        .info-panel h3 {
+            color: #667eea;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-panel ul {
+            color: #555;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            padding-left: 1.5rem;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Airport Security Time Distribution</h1>
+            <p>Ex-Gaussian distribution visualization for different security lane options</p>
+        </div>
+
+        <div class="options-selector">
+            <button class="option-btn active" data-option="regular">
+                <h3>Regular Security</h3>
+                <div class="time-range">25-50 minutes</div>
+            </button>
+            <button class="option-btn" data-option="fastlane">
+                <h3>Fast Lane</h3>
+                <div class="time-range">7-17 minutes</div>
+            </button>
+            <button class="option-btn" data-option="biometric">
+                <h3>Biometric</h3>
+                <div class="time-range">5-11 minutes</div>
+            </button>
+        </div>
+
+        <div class="visualization-container">
+            <div class="vis-header">
+                <h2 class="vis-title" id="vis-title">Regular Security Distribution</h2>
+                <p class="vis-description" id="vis-description">
+                    Wide distribution with significant right tail, showing higher variability and occasional long delays
+                </p>
+            </div>
+
+            <div class="distribution-wrapper">
+                <div class="distribution-container">
+                    <svg class="distribution-svg" id="distribution-svg" viewBox="0 0 800 80" preserveAspectRatio="none">
+                        <!-- Distribution will be rendered here -->
+                    </svg>
+                </div>
+                <div class="timeline-labels">
+                    <span class="timeline-label" style="left: 0%">0</span>
+                    <span class="timeline-label" style="left: 20%">10</span>
+                    <span class="timeline-label" style="left: 40%">20</span>
+                    <span class="timeline-label" style="left: 60%">30</span>
+                    <span class="timeline-label" style="left: 80%">40</span>
+                    <span class="timeline-label" style="left: 100%">50 min</span>
+                </div>
+            </div>
+
+            <div class="stats-grid" id="stats-grid">
+                <!-- Stats will be rendered here -->
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <h3>About Ex-Gaussian Distributions</h3>
+            <ul>
+                <li>Combines normal (Gaussian) distribution with exponential tail</li>
+                <li>Right-skewed to model rare but significant delays</li>
+                <li>Peak occurs before the mean due to the long right tail</li>
+                <li>Width indicates variability and predictability of wait times</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Security options configuration
+        const securityOptions = {
+            regular: {
+                name: 'Regular Security',
+                min: 25,
+                max: 50,
+                mean: 38,
+                mode: 33, // Peak of distribution
+                sigma: 4, // Standard deviation for Gaussian component
+                lambda: 0.15, // Rate parameter for exponential component
+                color: '#ff9a76',
+                description: 'Wide distribution with significant right tail, showing higher variability and occasional long delays'
+            },
+            fastlane: {
+                name: 'Fast Lane',
+                min: 7,
+                max: 17,
+                mean: 12,
+                mode: 10,
+                sigma: 2,
+                lambda: 0.25,
+                color: '#feca57',
+                description: 'Moderate distribution with reduced variability, more predictable wait times'
+            },
+            biometric: {
+                name: 'Biometric',
+                min: 5,
+                max: 11,
+                mean: 8,
+                mode: 7,
+                sigma: 1,
+                lambda: 0.4,
+                color: '#48dbfb',
+                description: 'Tight, narrow distribution showing highly consistent and predictable processing times'
+            }
+        };
+
+        let currentOption = 'regular';
+
+        // Generate Ex-Gaussian distribution points
+        function generateExGaussianPoints(option) {
+            const config = securityOptions[option];
+            const points = [];
+            const numPoints = 200;
+
+            // Scale to 0-50 minute range (800px width)
+            const pixelsPerMinute = 800 / 50;
+            const startX = config.min * pixelsPerMinute;
+            const endX = config.max * pixelsPerMinute;
+            const range = endX - startX;
+
+            // Generate distribution values
+            for (let i = 0; i <= numPoints; i++) {
+                const x = startX + (range * i / numPoints);
+                const minute = x / pixelsPerMinute;
+
+                // Ex-Gaussian PDF calculation
+                const relativeTime = minute - config.mode;
+                let y = 0;
+
+                if (relativeTime >= 0) {
+                    // Gaussian component
+                    const gaussianPart = Math.exp(-Math.pow(relativeTime, 2) / (2 * Math.pow(config.sigma, 2)));
+
+                    // Exponential component for right tail
+                    const exponentialPart = Math.exp(-config.lambda * relativeTime);
+
+                    // Combine components
+                    y = gaussianPart * (1 + exponentialPart * 0.3);
+
+                    // Add some decay after the max to create a softer cutoff
+                    if (minute > config.max) {
+                        y *= Math.exp(-2 * (minute - config.max));
+                    }
+                }
+
+                points.push({ x, y });
+            }
+
+            // Normalize heights
+            const maxY = Math.max(...points.map(p => p.y));
+            points.forEach(p => {
+                p.y = (p.y / maxY) * 60; // Scale to 60px max height
+            });
+
+            return points;
+        }
+
+        // Create SVG path from points
+        function createPath(points) {
+            if (points.length === 0) return '';
+
+            // Start from bottom left
+            let path = `M ${points[0].x} 80`;
+
+            // Line to first point
+            path += ` L ${points[0].x} ${80 - points[0].y}`;
+
+            // Create smooth curve through points
+            for (let i = 1; i < points.length; i++) {
+                const prev = points[i - 1];
+                const curr = points[i];
+                const next = points[i + 1] || curr;
+
+                // Control points for smooth curve
+                const cp1x = prev.x + (curr.x - prev.x) * 0.5;
+                const cp1y = 80 - prev.y;
+                const cp2x = curr.x - (next.x - curr.x) * 0.5;
+                const cp2y = 80 - curr.y;
+
+                path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${curr.x},${80 - curr.y}`;
+            }
+
+            // Close the path
+            path += ` L ${points[points.length - 1].x} 80 Z`;
+
+            return path;
+        }
+
+        // Render distribution
+        function renderDistribution(option) {
+            const config = securityOptions[option];
+            const svg = document.getElementById('distribution-svg');
+            const points = generateExGaussianPoints(option);
+            const path = createPath(points);
+
+            // Calculate positions
+            const pixelsPerMinute = 800 / 50;
+            const minX = config.min * pixelsPerMinute;
+            const maxX = config.max * pixelsPerMinute;
+            const meanX = config.mean * pixelsPerMinute;
+
+            svg.innerHTML = `
+                <!-- Gradient definition -->
+                <defs>
+                    <linearGradient id="distGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:${config.color};stop-opacity:0.8" />
+                        <stop offset="100%" style="stop-color:${config.color};stop-opacity:0.1" />
+                    </linearGradient>
+                </defs>
+
+                <!-- Distribution curve -->
+                <path d="${path}" fill="url(#distGradient)" />
+
+                <!-- Mean line -->
+                <line x1="${meanX}" y1="0" x2="${meanX}" y2="80"
+                      stroke="${config.color}" stroke-width="2" stroke-dasharray="4,4" opacity="0.8" />
+
+                <!-- Min marker -->
+                <line x1="${minX}" y1="70" x2="${minX}" y2="80"
+                      stroke="#666" stroke-width="2" opacity="0.5" />
+                <text x="${minX}" y="68" text-anchor="middle" font-size="11" fill="#666">
+                    ${config.min} min
+                </text>
+
+                <!-- Max marker -->
+                <line x1="${maxX}" y1="70" x2="${maxX}" y2="80"
+                      stroke="#666" stroke-width="2" opacity="0.5" />
+                <text x="${maxX}" y="68" text-anchor="middle" font-size="11" fill="#666">
+                    ${config.max} min
+                </text>
+
+                <!-- Mean label -->
+                <text x="${meanX}" y="95" text-anchor="middle" font-size="12" fill="${config.color}" font-weight="bold">
+                    Mean: ${config.mean} min
+                </text>
+            `;
+
+            // Update stats
+            updateStats(config);
+
+            // Update title and description
+            document.getElementById('vis-title').textContent = config.name + ' Distribution';
+            document.getElementById('vis-description').textContent = config.description;
+        }
+
+        // Update statistics display
+        function updateStats(config) {
+            const statsGrid = document.getElementById('stats-grid');
+            const variance = Math.pow(config.sigma, 2) + Math.pow(1/config.lambda, 2);
+            const stdDev = Math.sqrt(variance);
+
+            statsGrid.innerHTML = `
+                <div class="stat-card fade-in">
+                    <div class="stat-label">Minimum</div>
+                    <div class="stat-value">${config.min}<span class="stat-unit">min</span></div>
+                </div>
+                <div class="stat-card fade-in" style="animation-delay: 0.1s">
+                    <div class="stat-label">Average</div>
+                    <div class="stat-value">${config.mean}<span class="stat-unit">min</span></div>
+                </div>
+                <div class="stat-card fade-in" style="animation-delay: 0.2s">
+                    <div class="stat-label">Maximum</div>
+                    <div class="stat-value">${config.max}<span class="stat-unit">min</span></div>
+                </div>
+            `;
+        }
+
+        // Handle option selection
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Update active state
+                document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                // Render new distribution
+                currentOption = this.dataset.option;
+                renderDistribution(currentOption);
+            });
+        });
+
+        // Initial render
+        renderDistribution(currentOption);
+    </script>
+</body>
+</html>
