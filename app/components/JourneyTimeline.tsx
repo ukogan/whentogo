@@ -64,6 +64,15 @@ export default function JourneyTimeline({
   travelEstimate,
   currentSection,
 }: JourneyTimelineProps) {
+  // Format time helper
+  const formatTime = (date: Date): string => {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
   // Calculate segment widths based on average times - moved inside useMemo for proper reactivity
   const getSegmentWidth = React.useCallback((step: string): number => {
     if (!tripContext && !travelEstimate) return 20; // Equal widths by default
@@ -130,6 +139,37 @@ export default function JourneyTimeline({
     return widths;
   }, [steps, getSegmentWidth]);
 
+  // Calculate absolute times for each step (working backward from departure)
+  const stepTimes = React.useMemo(() => {
+    if (!tripContext?.flightTime) return {};
+
+    const times: Record<string, Date> = {};
+    const departureTime = new Date(tripContext.flightTime);
+    times['depart'] = departureTime;
+
+    // Work backward from departure
+    let currentTime = new Date(departureTime);
+
+    // Reverse the steps to calculate backward
+    const reversedSteps = [...steps].reverse();
+    reversedSteps.forEach((step, index) => {
+      if (step.key === 'depart') {
+        return; // Already set
+      }
+
+      // Subtract the duration of the previous step (which is the current step when going backward)
+      const prevStep = index > 0 ? reversedSteps[index - 1] : null;
+      if (prevStep) {
+        const duration = segmentWidths[prevStep.key] || 0;
+        currentTime = new Date(currentTime.getTime() - duration * 60000);
+      }
+
+      times[step.key] = new Date(currentTime);
+    });
+
+    return times;
+  }, [tripContext?.flightTime, steps, segmentWidths]);
+
   // Calculate relative widths for flexbox - recalculate when steps change
   const totalMinutes = React.useMemo(() => {
     return Object.values(segmentWidths).reduce((sum, width) => sum + width, 0);
@@ -163,6 +203,12 @@ export default function JourneyTimeline({
               ) : (
                 <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0">
                   {step.icon}
+                </div>
+              )}
+              {/* Time label */}
+              {stepTimes[step.key] && (
+                <div className="text-[9px] font-medium text-gray-600 dark:text-gray-400 mt-1 whitespace-nowrap">
+                  {formatTime(stepTimes[step.key])}
                 </div>
               )}
             </div>
