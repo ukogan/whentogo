@@ -111,7 +111,7 @@ export default function SecuritySelector({ hasPreCheck, hasClear, onChange }: Se
 
       {/* Ex-Gaussian Distribution Visualization */}
       <div className="relative mt-5">
-        <svg viewBox="0 0 200 50" className="w-full h-12">
+        <svg viewBox="0 0 200 50" className="w-full h-12" preserveAspectRatio="none">
           <defs>
             <linearGradient id={`securityGradient-${selected}`} x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#fed7aa" stopOpacity="0.9" />
@@ -120,8 +120,9 @@ export default function SecuritySelector({ hasPreCheck, hasClear, onChange }: Se
           </defs>
 
           {/* Ex-Gaussian distribution shape: normal body + exponential tail */}
+          {/* Distribution spans from min to max horizontally */}
           <path
-            d="M 0,50 L 0,45 Q 20,25 40,12 T 70,6 Q 85,7 100,12 Q 115,18 130,25 T 160,36 Q 175,40 190,43 L 200,44 L 200,50 Z"
+            d={`M ${(parseInt(data.min) / 50) * 200},50 L ${(parseInt(data.min) / 50) * 200},45 Q ${(parseInt(data.min) / 50) * 200 + 15},25 ${(parseInt(data.min) / 50) * 200 + 30},12 T ${((parseInt(data.min) + parseInt(data.max)) / 2 / 50) * 200},6 Q ${((parseInt(data.min) + parseInt(data.max)) / 2 / 50) * 200 + 15},7 ${((parseInt(data.min) + parseInt(data.max)) / 2 / 50) * 200 + 30},12 Q ${((parseInt(data.min) + parseInt(data.max)) / 2 / 50) * 200 + 45},18 ${((parseInt(data.min) + parseInt(data.max)) / 2 / 50) * 200 + 60},25 T ${(parseInt(data.max) / 50) * 200 - 10},36 Q ${(parseInt(data.max) / 50) * 200 - 5},40 ${(parseInt(data.max) / 50) * 200},43 L ${(parseInt(data.max) / 50) * 200},44 L ${(parseInt(data.max) / 50) * 200},50 Z`}
             fill={`url(#securityGradient-${selected})`}
             className="transition-all duration-400"
           />

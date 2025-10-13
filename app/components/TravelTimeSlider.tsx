@@ -21,7 +21,7 @@ export default function TravelTimeSlider({
     <div className="space-y-4">
       {/* Lognormal Distribution Visualization */}
       <div className="relative mt-5">
-        <svg viewBox="0 0 200 50" className="w-full h-12">
+        <svg viewBox="0 0 200 50" className="w-full h-12" preserveAspectRatio="none">
           <defs>
             <linearGradient id="travelTimeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#86efac" stopOpacity="0.9" />
@@ -30,8 +30,9 @@ export default function TravelTimeSlider({
           </defs>
 
           {/* Lognormal distribution shape: sharp rise, peak left, fat right tail */}
+          {/* Distribution spans from min to max horizontally */}
           <path
-            d="M 0,50 L 0,40 Q 25,18 50,9 T 85,6 Q 105,7 125,11 T 160,22 Q 175,28 190,34 L 200,38 L 200,50 Z"
+            d={`M ${(min / 120) * 200},50 L ${(min / 120) * 200},40 Q ${(min / 120) * 200 + 20},18 ${(min / 120) * 200 + 40},9 T ${((min + max) / 2 / 120) * 200},6 Q ${((min + max) / 2 / 120) * 200 + 20},7 ${((min + max) / 2 / 120) * 200 + 40},11 T ${(max / 120) * 200 - 20},22 Q ${(max / 120) * 200 - 10},28 ${(max / 120) * 200},34 L ${(max / 120) * 200},38 L ${(max / 120) * 200},50 Z`}
             fill="url(#travelTimeGradient)"
             className="transition-all duration-400"
           />
