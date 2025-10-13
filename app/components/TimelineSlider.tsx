@@ -74,8 +74,9 @@ export default function TimelineSlider({
       const newBoardingMinutes = Math.max(15, Math.min(90, snappedMinutes));
       onBoardingChange(newBoardingMinutes);
     } else if (isDragging === 'door') {
-      // Door must be between 5 minutes and boarding-5 minutes
-      const newDoorMinutes = Math.max(5, Math.min(boardingMinutes - 5, snappedMinutes));
+      // Door must close at least 10 minutes before departure (airline policy)
+      // and at least 5 minutes before boarding starts
+      const newDoorMinutes = Math.max(10, Math.min(boardingMinutes - 5, snappedMinutes));
       onDoorChange(newDoorMinutes);
     }
   };
