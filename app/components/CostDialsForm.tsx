@@ -41,12 +41,12 @@ export default function CostDialsForm({ onComplete, tripContext }: CostDialsForm
     else if (confidence >= 0.70) estimatedWaitMin = 4;
     else estimatedWaitMin = 3;
 
-    // Use actual boarding time from trip context if available, otherwise use typical 30 min default
-    const boardingStartMin = tripContext?.boardingStartMin ?? 30;
-    const arriveBeforeBoardingStarts = estimatedWaitMin > boardingStartMin;
-    const boardingMinutes = arriveBeforeBoardingStarts
-      ? estimatedWaitMin - boardingStartMin
-      : boardingStartMin - estimatedWaitMin;
+    // Use actual door close time from trip context if available, otherwise use typical 10 min default
+    const doorCloseMin = tripContext?.doorCloseMin ?? 10;
+    const arriveBeforeDoorCloses = estimatedWaitMin > doorCloseMin;
+    const doorCloseMinutes = arriveBeforeDoorCloses
+      ? estimatedWaitMin - doorCloseMin
+      : doorCloseMin - estimatedWaitMin;
 
     // Convert confidence to "X out of Y" format
     let outOfText = '';
@@ -64,10 +64,10 @@ export default function CostDialsForm({ onComplete, tripContext }: CostDialsForm
       confidence: confidencePercent,
       outOfText,
       waitMinutes: estimatedWaitMin,
-      arriveBeforeBoardingStarts,
-      boardingMinutes,
+      arriveBeforeDoorCloses,
+      doorCloseMinutes,
     };
-  }, [costMissing, costWaiting, tripContext?.boardingStartMin]);
+  }, [costMissing, costWaiting, tripContext?.doorCloseMin]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,15 +207,15 @@ export default function CostDialsForm({ onComplete, tripContext }: CostDialsForm
                 })}
               </div>
             </div>
-            {/* Boarding Status */}
+            {/* Door Close Status */}
             <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-              {previewMetrics.arriveBeforeBoardingStarts ? (
+              {previewMetrics.arriveBeforeDoorCloses ? (
                 <p className="text-xs text-green-600 dark:text-green-500 font-medium">
-                  ✓ {previewMetrics.boardingMinutes} min before boarding
+                  ✓ {previewMetrics.doorCloseMinutes} min before door closes
                 </p>
               ) : (
                 <p className="text-xs text-orange-600 dark:text-orange-500 font-medium">
-                  ⚠ {previewMetrics.boardingMinutes} min after boarding starts
+                  ⚠ {previewMetrics.doorCloseMinutes} min after door closes
                 </p>
               )}
             </div>

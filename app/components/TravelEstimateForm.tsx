@@ -40,19 +40,16 @@ export default function TravelEstimateForm({ onComplete, onBack, onPartialUpdate
       value: 'driving' as TravelMode,
       label: 'Driving',
       icon: Car,
-      description: '+ parking',
     },
     {
       value: 'rideshare' as TravelMode,
       label: 'Rideshare',
       icon: Navigation,
-      description: 'Uber/Lyft',
     },
     {
       value: 'transit' as TravelMode,
       label: 'Transit',
       icon: Train,
-      description: 'Bus/train',
     },
   ];
 
@@ -87,15 +84,12 @@ export default function TravelEstimateForm({ onComplete, onBack, onPartialUpdate
                 <Icon
                   className={`h-6 w-6 ${isSelected ? 'text-blue-500' : 'text-gray-400'}`}
                 />
-                <div className="text-center">
-                  <div
-                    className={`text-sm font-medium ${
-                      isSelected ? 'text-blue-700' : 'text-gray-700'
-                    }`}
-                  >
-                    {option.label}
-                  </div>
-                  <div className="text-xs text-gray-500">{option.description}</div>
+                <div
+                  className={`text-sm font-medium ${
+                    isSelected ? 'text-blue-700' : 'text-gray-700'
+                  }`}
+                >
+                  {option.label}
                 </div>
               </button>
             );
