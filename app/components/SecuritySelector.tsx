@@ -111,7 +111,7 @@ export default function SecuritySelector({ hasPreCheck, hasClear, onChange }: Se
 
       {/* Ex-Gaussian Distribution Visualization */}
       <div className="relative mt-5">
-        <svg viewBox="0 0 200 80" className="w-full h-20">
+        <svg viewBox="0 0 200 50" className="w-full h-12">
           <defs>
             <linearGradient id={`securityGradient-${selected}`} x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#fed7aa" stopOpacity="0.9" />
@@ -121,7 +121,7 @@ export default function SecuritySelector({ hasPreCheck, hasClear, onChange }: Se
 
           {/* Ex-Gaussian distribution shape: normal body + exponential tail */}
           <path
-            d="M 0,80 L 0,70 Q 20,40 40,20 T 70,10 Q 85,12 100,20 Q 115,30 130,40 T 160,58 Q 175,65 190,68 L 200,70 L 200,80 Z"
+            d="M 0,50 L 0,45 Q 20,25 40,12 T 70,6 Q 85,7 100,12 Q 115,18 130,25 T 160,36 Q 175,40 190,43 L 200,44 L 200,50 Z"
             fill={`url(#securityGradient-${selected})`}
             className="transition-all duration-400"
           />
@@ -129,9 +129,9 @@ export default function SecuritySelector({ hasPreCheck, hasClear, onChange }: Se
           {/* Mean marker (dashed line positioned right of peak) */}
           <line
             x1={`${(parseInt(data.avg) / 50) * 200}`}
-            y1="5"
+            y1="3"
             x2={`${(parseInt(data.avg) / 50) * 200}`}
-            y2="80"
+            y2="50"
             stroke="#f97316"
             strokeWidth="2"
             strokeDasharray="3,3"
@@ -141,8 +141,8 @@ export default function SecuritySelector({ hasPreCheck, hasClear, onChange }: Se
           {/* Min label */}
           <text
             x={`${(parseInt(data.min) / 50) * 200}`}
-            y="75"
-            fontSize="10"
+            y="46"
+            fontSize="9"
             fill="#6b7280"
             textAnchor="middle"
             className="transition-all duration-400"
@@ -153,8 +153,8 @@ export default function SecuritySelector({ hasPreCheck, hasClear, onChange }: Se
           {/* Max label */}
           <text
             x={`${(parseInt(data.max) / 50) * 200}`}
-            y="75"
-            fontSize="10"
+            y="46"
+            fontSize="9"
             fill="#6b7280"
             textAnchor="middle"
             className="transition-all duration-400"

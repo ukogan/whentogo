@@ -115,7 +115,7 @@ export default function BagCheckSelector({ hasCheckedBag, hasPriorityBagCheck, o
       {/* Lognormal Distribution Visualization */}
       {showBar && (
         <div className="relative mt-5">
-          <svg viewBox="0 0 200 80" className="w-full h-20">
+          <svg viewBox="0 0 200 50" className="w-full h-12">
             <defs>
               <linearGradient id={`bagCheckGradient-${selected}`} x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#86efac" stopOpacity="0.9" />
@@ -125,7 +125,7 @@ export default function BagCheckSelector({ hasCheckedBag, hasPriorityBagCheck, o
 
             {/* Lognormal distribution shape: sharp rise, peak left, fat right tail */}
             <path
-              d="M 0,80 L 0,65 Q 25,30 50,15 T 85,10 Q 105,12 125,18 T 160,35 Q 175,45 190,55 L 200,62 L 200,80 Z"
+              d="M 0,50 L 0,40 Q 25,18 50,9 T 85,6 Q 105,7 125,11 T 160,22 Q 175,28 190,34 L 200,38 L 200,50 Z"
               fill={`url(#bagCheckGradient-${selected})`}
               className="transition-all duration-400"
             />
@@ -133,9 +133,9 @@ export default function BagCheckSelector({ hasCheckedBag, hasPriorityBagCheck, o
             {/* Mean marker (dashed line positioned right of peak) */}
             <line
               x1={`${(parseInt(data.avg) / 35) * 200}`}
-              y1="5"
+              y1="3"
               x2={`${(parseInt(data.avg) / 35) * 200}`}
-              y2="80"
+              y2="50"
               stroke="#22c55e"
               strokeWidth="2"
               strokeDasharray="3,3"
@@ -145,8 +145,8 @@ export default function BagCheckSelector({ hasCheckedBag, hasPriorityBagCheck, o
             {/* Min label */}
             <text
               x={`${(parseInt(data.min) / 35) * 200}`}
-              y="75"
-              fontSize="10"
+              y="46"
+              fontSize="9"
               fill="#6b7280"
               textAnchor="middle"
               className="transition-all duration-400"
@@ -157,8 +157,8 @@ export default function BagCheckSelector({ hasCheckedBag, hasPriorityBagCheck, o
             {/* Max label */}
             <text
               x={`${(parseInt(data.max) / 35) * 200}`}
-              y="75"
-              fontSize="10"
+              y="46"
+              fontSize="9"
               fill="#6b7280"
               textAnchor="middle"
               className="transition-all duration-400"
