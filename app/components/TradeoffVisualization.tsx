@@ -250,8 +250,8 @@ export default function TradeoffVisualization({
         {/* Slider */}
         <div className="mb-4">
           <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
-            <span>Leave earlier</span>
             <span>Leave later</span>
+            <span>Leave earlier</span>
           </div>
           <input
             type="range"
