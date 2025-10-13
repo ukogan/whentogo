@@ -112,70 +112,64 @@ export default function BagCheckSelector({ hasCheckedBag, hasPriorityBagCheck, o
         ))}
       </div>
 
-      {/* Thin gradient line with labels below */}
+      {/* Lognormal Distribution Visualization */}
       {showBar && (
-        <div className="relative mt-5 pb-8">
-          <div className="relative h-2 w-full">
-            {/* Visible gradient bar - only shows relevant time range */}
-            <div
-              className="absolute h-2 rounded-full transition-all duration-400 ease-out shadow-md"
-              style={{
-                left: `${(parseInt(data.min) / 35) * 100}%`,
-                width: `${((parseInt(data.max) - parseInt(data.min)) / 35) * 100}%`,
-                background: selected === 'priority'
-                  ? 'linear-gradient(90deg, #10b981 0%, #10b981 60%, #3b82f6 100%)'
-                  : 'linear-gradient(90deg, #10b981 0%, #3b82f6 50%, #f97316 100%)',
-              }}
-            >
-              {/* Shimmer effect */}
-              <div className="absolute top-0 left-0 w-full h-full overflow-hidden rounded-full">
-                <div
-                  className="absolute top-0 w-full h-full animate-shimmer"
-                  style={{
-                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
-                    animation: 'shimmer 3s linear infinite',
-                  }}
-                />
-              </div>
-            </div>
+        <div className="relative mt-5">
+          <svg viewBox="0 0 200 80" className="w-full h-20">
+            <defs>
+              <linearGradient id={`bagCheckGradient-${selected}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#86efac" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#86efac" stopOpacity="0.2" />
+              </linearGradient>
+            </defs>
 
-            {/* Min marker at left edge of gradient bar */}
-            <div
-              className="absolute transition-all duration-400"
-              style={{
-                left: `${(parseInt(data.min) / 35) * 100}%`,
-                top: '50%',
-                transform: 'translate(-100%, -50%) translateX(-8px)',
-              }}
-            >
-              <span className="text-xs text-gray-600">{data.min}</span>
-            </div>
+            {/* Lognormal distribution shape: sharp rise, peak left, fat right tail */}
+            <path
+              d="M 0,80 L 0,65 Q 25,30 50,15 T 85,10 Q 105,12 125,18 T 160,35 Q 175,45 190,55 L 200,62 L 200,80 Z"
+              fill={`url(#bagCheckGradient-${selected})`}
+              className="transition-all duration-400"
+            />
 
-            {/* Max marker at right edge of gradient bar */}
-            <div
-              className="absolute transition-all duration-400"
-              style={{
-                left: `${(parseInt(data.max) / 35) * 100}%`,
-                top: '50%',
-                transform: 'translate(0%, -50%) translateX(8px)',
-              }}
-            >
-              <span className="text-xs text-gray-600">{data.max}</span>
-            </div>
+            {/* Mean marker (dashed line positioned right of peak) */}
+            <line
+              x1={`${(parseInt(data.avg) / 35) * 200}`}
+              y1="5"
+              x2={`${(parseInt(data.avg) / 35) * 200}`}
+              y2="80"
+              stroke="#22c55e"
+              strokeWidth="2"
+              strokeDasharray="3,3"
+              className="transition-all duration-400"
+            />
 
-            {/* Triangle pointer at mean position */}
-            <div
-              className="absolute top-full mt-1 transition-all duration-400"
-              style={{
-                left: `${(parseInt(data.avg) / 35) * 100}%`,
-                transform: 'translateX(-50%)',
-              }}
+            {/* Min label */}
+            <text
+              x={`${(parseInt(data.min) / 35) * 200}`}
+              y="75"
+              fontSize="10"
+              fill="#6b7280"
+              textAnchor="middle"
+              className="transition-all duration-400"
             >
-              <div className="flex flex-col items-center">
-                <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-blue-500" />
-                <span className="text-sm font-bold text-gray-900 mt-1">{data.avg} min</span>
-              </div>
-            </div>
+              {data.min}
+            </text>
+
+            {/* Max label */}
+            <text
+              x={`${(parseInt(data.max) / 35) * 200}`}
+              y="75"
+              fontSize="10"
+              fill="#6b7280"
+              textAnchor="middle"
+              className="transition-all duration-400"
+            >
+              {data.max}
+            </text>
+          </svg>
+
+          {/* Mean value label below */}
+          <div className="flex justify-center mt-1">
+            <span className="text-sm font-bold text-gray-900">{data.avg} min</span>
           </div>
         </div>
       )}
