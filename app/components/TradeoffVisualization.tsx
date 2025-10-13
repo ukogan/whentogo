@@ -270,6 +270,7 @@ export default function TradeoffVisualization({
                        [&::-webkit-slider-thumb]:shadow-lg
                        [&::-webkit-slider-thumb]:hover:bg-blue-600
                        [&::-webkit-slider-thumb]:transition-colors"
+            style={{ direction: 'rtl' }}
           />
           <div className="flex items-center justify-center text-xs text-gray-500 mt-1">
             <span>±20 minutes</span>
