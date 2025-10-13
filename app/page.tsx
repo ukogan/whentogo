@@ -276,6 +276,7 @@ export default function Home() {
             <CostDialsForm
               onComplete={handleCostsComplete}
               onBack={() => scrollToSection('intro')}
+              tripContext={tripContext}
             />
           </div>
         </div>

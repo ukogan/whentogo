@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { CostPreferences, CostLevel } from '../lib/types';
+import type { CostPreferences, CostLevel, TripContext } from '../lib/types';
 import EmotionalSlider from './EmotionalSlider';
 
 interface CostDialsFormProps {
   onComplete: (preferences: CostPreferences) => void;
   onBack: () => void;
+  tripContext?: TripContext | null;
 }
 
 // Confidence matrix from calculations.ts
@@ -18,7 +19,7 @@ const CONFIDENCE_MATRIX: Record<number, Record<number, number>> = {
   5: { 1: 0.9999, 2: 0.9995, 3: 0.9993, 4: 0.9991, 5: 0.9989 },
 };
 
-export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
+export default function CostDialsForm({ onComplete, tripContext }: CostDialsFormProps) {
   const [costMissing, setCostMissing] = useState<CostLevel>(3);
   const [costWaiting, setCostWaiting] = useState<CostLevel>(3);
 
@@ -40,9 +41,8 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
     else if (confidence >= 0.70) estimatedWaitMin = 4;
     else estimatedWaitMin = 3;
 
-    // Estimate boarding timing (typical boarding starts 30-40 min before departure)
-    // If wait time is long, you'll arrive before boarding starts
-    const boardingStartMin = 35; // Typical boarding start time
+    // Use actual boarding time from trip context if available, otherwise use typical 30 min default
+    const boardingStartMin = tripContext?.boardingStartMin ?? 30;
     const arriveBeforeBoardingStarts = estimatedWaitMin > boardingStartMin;
     const boardingMinutes = arriveBeforeBoardingStarts
       ? estimatedWaitMin - boardingStartMin
@@ -67,7 +67,7 @@ export default function CostDialsForm({ onComplete }: CostDialsFormProps) {
       arriveBeforeBoardingStarts,
       boardingMinutes,
     };
-  }, [costMissing, costWaiting]);
+  }, [costMissing, costWaiting, tripContext?.boardingStartMin]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
