@@ -427,21 +427,49 @@ export default function TradeoffVisualization({
                 Time Component Distributions
               </h4>
 
-              {/* Travel Time */}
+              {/* Travel Time - Lognormal Distribution */}
               <div className="bg-white rounded p-3">
                 <div className="text-xs font-medium text-gray-600 mb-2">
                   Travel Time: {simulationInputs.travelEstimate.minMinutes}-{simulationInputs.travelEstimate.maxMinutes} min
                 </div>
-                <div className="h-16 bg-gradient-to-r from-transparent via-green-200 to-transparent rounded opacity-60" />
+                <svg viewBox="0 0 200 60" className="w-full h-16">
+                  <defs>
+                    <linearGradient id="travelGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#86efac" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#86efac" stopOpacity="0.2" />
+                    </linearGradient>
+                  </defs>
+                  {/* Right-skewed lognormal shape with fat right tail */}
+                  <path
+                    d="M 0,60 L 0,50 Q 20,20 40,10 T 70,8 Q 90,10 110,15 T 140,25 Q 160,35 180,45 L 200,55 L 200,60 Z"
+                    fill="url(#travelGradient)"
+                  />
+                  {/* Mean marker (right of peak for right-skewed) */}
+                  <line x1="75" y1="5" x2="75" y2="60" stroke="#22c55e" strokeWidth="2" strokeDasharray="3,3" />
+                </svg>
               </div>
 
-              {/* Security Time */}
+              {/* Security Time - Ex-Gaussian Distribution */}
               {debugInfo && (
                 <div className="bg-white rounded p-3">
                   <div className="text-xs font-medium text-gray-600 mb-2">
                     Security Time: ~{Math.round(debugInfo.components.security)} min (avg)
                   </div>
-                  <div className="h-16 bg-gradient-to-r from-transparent via-orange-200 to-transparent rounded opacity-60" />
+                  <svg viewBox="0 0 200 60" className="w-full h-16">
+                    <defs>
+                      <linearGradient id="securityGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#fed7aa" stopOpacity="0.8" />
+                        <stop offset="100%" stopColor="#fed7aa" stopOpacity="0.2" />
+                      </linearGradient>
+                    </defs>
+                    {/* Ex-Gaussian shape: normal body + exponential tail */}
+                    <path
+                      d="M 0,60 L 0,55 Q 15,30 30,15 T 55,8 Q 70,10 85,15 Q 100,22 115,30 T 145,45 Q 165,52 185,56 L 200,58 L 200,60 Z"
+                      fill="url(#securityGradient)"
+                    />
+                    {/* Mean marker (right of peak) */}
+                    <line x1="90" y1="5" x2="90" y2="60" stroke="#f97316" strokeWidth="2" strokeDasharray="3,3" />
+                  </svg>
                 </div>
               )}
             </div>
